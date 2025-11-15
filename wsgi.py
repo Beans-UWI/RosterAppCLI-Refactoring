@@ -5,10 +5,11 @@ from flask_jwt_extended import verify_jwt_in_request, get_jwt_identity
 
 from App.database import db, get_migrate
 from App.models import User
+from App.schedulers import SchedulerService, SchedulerFactory
 from App.main import create_app 
 from App.controllers import (
     create_user, get_all_users_json, get_all_users, initialize,
-    schedule_shift, get_combined_roster, clock_in, clock_out, get_shift_report, login,loginCLI
+    schedule_shift, get_combined_roster, clock_in, clock_out, get_shift_report, login,loginCLI, create_schedule
 )
 
 app = create_app()
@@ -167,12 +168,12 @@ schedule_cli = AppGroup('schedule', help='Schedule management commands')
 
 @schedule_cli.command("create", help="Create a schedule")
 @click.argument("name")
-def create_schedule_command(name):
-    from App.models import Schedule
+@click.argument("strategy")
+def create_schedule_command(name, strategy):
+    from App.models import Schedule, Staff
     admin = require_admin_login()
-    schedule = Schedule(name=name, created_by=admin.id)
-    db.session.add(schedule)
-    db.session.commit()
+    staff_list = Staff.query.all()
+    schedule = create_schedule(admin_id=admin.id, scheduleName=name, strategy=strategy, shift_length_hours=12, week_start=datetime.utcnow(), staff_list=staff_list)
     print(f"✅ Schedule created: {schedule.get_json()}")
 
 

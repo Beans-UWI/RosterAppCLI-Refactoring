@@ -1,4 +1,5 @@
 from App.models import Shift
+from App.schedulers import SchedulerService, SchedulerFactory
 from App.database import db
 from datetime import datetime
 from App.controllers.user import get_user
@@ -8,15 +9,24 @@ from App.database import db
 from datetime import datetime
 from App.controllers.user import get_user
 
-def create_schedule(admin_id, scheduleName): #Not sure why this was missing
+def create_schedule(admin_id, scheduleName, strategy, staff_list, shift_length_hours, week_start):
     admin = get_user(admin_id)
     if not admin or admin.role != "admin":
         raise PermissionError("Only admins can create schedules")
 
-    new_schedule = Schedule(
-        created_by=admin_id,
+    # Get the selected scheduling strategy class
+    scheduler = SchedulerFactory.get_scheduler(strategy)
+
+    # Get the selected scheduling strategy's implementation
+    service = SchedulerService(scheduler)
+
+    # Apply the selected scheduling strategy's implementation to generate a new schedule
+    new_schedule = service.generate_schedule(
+        admin_id=admin_id,
         name=scheduleName,
-        created_at=datetime.utcnow()
+        staff_list=staff_list,
+        shift_length_hours=shift_length_hours,
+        week_start=week_start,
     )
 
     db.session.add(new_schedule)
