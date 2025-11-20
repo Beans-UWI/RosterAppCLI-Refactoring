@@ -1,4 +1,3 @@
-from datetime import datetime
 from App.database import db
 
 class Shift(db.Model):

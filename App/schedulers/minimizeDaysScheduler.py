@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from App.database import db
 from .scheduler import Scheduler
 from App.models import Shift
@@ -15,8 +15,8 @@ class MinimizeDaysScheduler(Scheduler):
 
         
         if week_start is None:
-            now = datetime.utcnow()
-            week_start = datetime(year=now.year, month=now.month, day=now.day)
+            now = datetime.now(timezone.utc)
+            week_start = datetime(year=now.year, month=now.month, day=now.day, tzinfo=timezone.utc)
 
         total_days = 7
         shifts_per_day = 24 // shift_length_hours
@@ -25,7 +25,7 @@ class MinimizeDaysScheduler(Scheduler):
         new_schedule = Schedule(
             created_by=admin_id,
             name=name,
-            created_at=datetime.utcnow(),
+            created_at=datetime.now(timezone.utc),
             start_date = week_start
         )
         db.session.add(new_schedule)
