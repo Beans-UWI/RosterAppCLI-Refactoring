@@ -62,7 +62,7 @@ class UserUnitTests(unittest.TestCase):
     def test_schedule_shift_valid(self):
         admin = create_user("admin1", "adminpass", "admin")
         staff = create_user("staff1", "staffpass", "staff")
-        schedule = Schedule(name="Morning Schedule", created_by=admin.id)
+        schedule = Schedule(name="Morning Schedule", start_date=datetime.now(), created_by=admin.id)
         db.session.add(schedule)
         db.session.commit()
 
@@ -96,7 +96,7 @@ class UserUnitTests(unittest.TestCase):
         db.session.add_all([admin, staff])
         db.session.commit()
 
-        schedule = Schedule(name="Weekend Schedule", created_by=admin.id)
+        schedule = Schedule(name="Weekend Schedule", start_date=datetime.now(), created_by=admin.id)
         db.session.add(schedule)
         db.session.commit()
 
@@ -124,7 +124,7 @@ class UserUnitTests(unittest.TestCase):
     def test_get_combined_roster_valid(self):
         staff = create_user("staff3", "pass123", "staff")
         admin = create_user("admin3", "adminpass", "admin")
-        schedule = Schedule(name="Test Schedule", created_by=admin.id)
+        schedule = Schedule(name="Test Schedule", start_date=datetime.now(), created_by=admin.id)
         db.session.add(schedule)
         db.session.commit()
 
@@ -150,7 +150,7 @@ class UserUnitTests(unittest.TestCase):
         admin = create_user("admin_clock", "adminpass", "admin")
         staff = create_user("staff_clock", "staffpass", "staff")
 
-        schedule = Schedule(name="Clock Schedule", created_by=admin.id)
+        schedule = Schedule(name="Clock Schedule", start_date=datetime.now(), created_by=admin.id)
         db.session.add(schedule)
         db.session.commit()
 
@@ -164,7 +164,7 @@ class UserUnitTests(unittest.TestCase):
 
     def test_clock_in_invalid_user(self):
         admin = create_user("admin_clockin", "adminpass", "admin")
-        schedule = Schedule(name="Invalid Clock In", created_by=admin.id)
+        schedule = Schedule(name="Invalid Clock In", start_date=datetime.now(), created_by=admin.id)
         db.session.add(schedule)
         db.session.commit()
 
@@ -187,7 +187,7 @@ class UserUnitTests(unittest.TestCase):
         admin = create_user("admin_clockout", "adminpass", "admin")
         staff = create_user("staff_clockout", "staffpass", "staff")
 
-        schedule = Schedule(name="ClockOut Schedule", created_by=admin.id)
+        schedule = Schedule(name="ClockOut Schedule", start_date=datetime.now(), created_by=admin.id)
         db.session.add(schedule)
         db.session.commit()
 
@@ -201,7 +201,7 @@ class UserUnitTests(unittest.TestCase):
 
     def test_clock_out_invalid_user(self):
         admin = create_user("admin_invalid_out", "adminpass", "admin")
-        schedule = Schedule(name="Invalid ClockOut Schedule", created_by=admin.id)
+        schedule = Schedule(name="Invalid ClockOut Schedule", start_date=datetime.now(), created_by=admin.id)
         db.session.add(schedule)
         db.session.commit()
 
@@ -277,7 +277,7 @@ class UsersIntegrationTests(unittest.TestCase):
         admin = create_user("admin1", "adminpass", "admin")
         staff = create_user("staff1", "staffpass", "staff")
 
-        schedule = Schedule(name="Week 1 Schedule", created_by=admin.id)
+        schedule = Schedule(name="Week 1 Schedule", start_date=datetime.now(), created_by=admin.id)
         db.session.add(schedule)
         db.session.commit()
 
@@ -296,7 +296,7 @@ class UsersIntegrationTests(unittest.TestCase):
         staff = create_user("jane", "janepass", "staff")
         other_staff = create_user("mark", "markpass", "staff")
 
-        schedule = Schedule(name="Shared Roster", created_by=admin.id)
+        schedule = Schedule(name="Shared Roster", start_date=datetime.now(), created_by=admin.id)
         db.session.add(schedule)
         db.session.commit()
 
@@ -314,7 +314,7 @@ class UsersIntegrationTests(unittest.TestCase):
         admin = create_user("admin", "adminpass", "admin")
         staff = create_user("lee", "leepass", "staff")
 
-        schedule = Schedule(name="Daily Schedule", created_by=admin.id)
+        schedule = Schedule(name="Daily Schedule", start_date=datetime.now(), created_by=admin.id)
         db.session.add(schedule)
         db.session.commit()
 
@@ -336,7 +336,7 @@ class UsersIntegrationTests(unittest.TestCase):
         admin = create_user("boss", "boss123", "admin")
         staff = create_user("sam", "sampass", "staff")
 
-        schedule = Schedule(name="Weekly Schedule", created_by=admin.id)
+        schedule = Schedule(name="Weekly Schedule", start_date=datetime.now(), created_by=admin.id)
         db.session.add(schedule)
         db.session.commit()
 
@@ -354,7 +354,7 @@ class UsersIntegrationTests(unittest.TestCase):
         staff = create_user("worker", "workpass", "staff")
 
         # Create schedule
-        schedule = Schedule(name="Restricted Schedule", created_by=admin.id)
+        schedule = Schedule(name="Restricted Schedule", start_date=datetime.now(), created_by=admin.id)
         db.session.add(schedule)
         db.session.commit()
 
