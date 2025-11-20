@@ -1,7 +1,7 @@
 from App.database import db
 from .user import User
 from .shift import Shift
-from datetime import datetime
+from datetime import datetime, timezone
 
 class Staff(User):
     id = db.Column(db.Integer, db.ForeignKey("user.id"), primary_key=True)
@@ -25,7 +25,7 @@ class Staff(User):
         if shift.clock_in is not None:
             raise ValueError("Shift is already clocked in")
 
-        shift.clock_in = datetime.now()
+        shift.clock_in = datetime.now(timezone.utc)
         db.session.commit()
         return shift
 
@@ -39,6 +39,6 @@ class Staff(User):
         if shift.clock_out is not None:
             raise ValueError("Shift is already clocked out")
 
-        shift.clock_out = datetime.now()
+        shift.clock_out = datetime.now(timezone.utc)
         db.session.commit()
         return shift

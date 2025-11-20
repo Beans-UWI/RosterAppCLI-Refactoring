@@ -1,15 +1,8 @@
-from App.models import Shift
 from App.schedulers import SchedulerService, SchedulerFactory
 from App.database import db
-from datetime import datetime
 from App.controllers.user import get_user
 
-from App.models import Shift, Schedule
-from App.database import db
-from datetime import datetime
-from App.controllers.user import get_user
-
-def create_schedule(admin_id, scheduleName, strategy, staff_list, shift_length_hours, week_start):
+def create_schedule(admin_id, schedule_name, strategy, staff_list, shift_length_hours, week_start):
     admin = get_user(admin_id)
     if not admin or admin.role != "admin":
         raise PermissionError("Only admins can create schedules")
@@ -23,7 +16,7 @@ def create_schedule(admin_id, scheduleName, strategy, staff_list, shift_length_h
     # Apply the selected scheduling strategy's implementation to generate a new schedule
     new_schedule = service.generate_schedule(
         admin_id=admin_id,
-        name=scheduleName,
+        name=schedule_name,
         staff_list=staff_list,
         shift_length_hours=shift_length_hours,
         week_start=week_start,
@@ -53,4 +46,4 @@ def get_shift_report(admin_id):
     if not admin or admin.role != "admin":
         raise PermissionError("Only admins can view shift reports")
 
-    return admin.get_report()
+    return admin.view_report()
