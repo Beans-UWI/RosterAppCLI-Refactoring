@@ -46,4 +46,4 @@ def get_shift_report(admin_id):
     if not admin or admin.role != "admin":
         raise PermissionError("Only admins can view shift reports")
 
-    return admin.view_report()
+    return admin.get_report()
