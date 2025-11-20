@@ -5,7 +5,7 @@ class Schedule(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(50), nullable=False)
     start_date = db.Column(db.DateTime, nullable=False)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=datetime.now(datetime.timezone.utc))
     created_by = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
     shifts = db.relationship("Shift", backref="schedule", lazy=True)
 

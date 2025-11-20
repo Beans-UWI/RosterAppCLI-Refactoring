@@ -25,7 +25,7 @@ class Staff(User):
         if shift.clock_in is not None:
             raise ValueError("Shift is already clocked in")
 
-        shift.clock_in = datetime.utcnow()
+        shift.clock_in = datetime.now(datetime.timezone.utc)
         db.session.commit()
         return shift
 
@@ -39,6 +39,6 @@ class Staff(User):
         if shift.clock_in is not None:
             raise ValueError("Shift is already clocked out")
 
-        shift.clock_out = datetime.utcnow()
+        shift.clock_out = datetime.now(datetime.timezone.utc)
         db.session.commit()
         return shift
