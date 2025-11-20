@@ -2,7 +2,7 @@ from App.database import db
 from .scheduler import Scheduler
 from App.models import Shift
 from App.models import Schedule
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 class EvenDistributionScheduler(Scheduler):
     def generateSchedule(self, admin_id, name, staffList, shift_length_hours, week_start):
@@ -20,7 +20,7 @@ class EvenDistributionScheduler(Scheduler):
         new_schedule = Schedule(
             created_by=admin_id,
             name=name,
-            created_at=datetime.utcnow(),
+            created_at=datetime.now(timezone.utc),
             start_date=week_start
         )
         db.session.add(new_schedule)
