@@ -25,6 +25,9 @@ class Admin(User):
             end_time=end_time
         )
 
+        if end_time <= start_time:
+            raise ValueError("Shift end time must be after start time")
+    
         db.session.add(new_shift)
         db.session.commit()
 

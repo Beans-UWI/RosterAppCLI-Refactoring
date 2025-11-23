@@ -15,7 +15,7 @@ from App.controllers import (
     get_combined_roster,
     clock_in,
     clock_out,
-    get_shift 
+    get_shift,
 )
 
 
@@ -53,11 +53,14 @@ class UserUnitTests(unittest.TestCase):
         user = User(username="tester", password=password)
         assert user.password != password
         assert user.check_password(password) is True
+        assert user.check_password("wrongpass") is False
 
     def test_check_password(self):
         password = "mypass"
         user = User("bob", password)
         assert user.check_password(password)
+        assert not user.check_password("wrongpass")
+
 # Admin unit tests
     def test_schedule_shift_valid(self):
         admin = create_user("admin1", "adminpass", "admin")
@@ -89,6 +92,18 @@ class UserUnitTests(unittest.TestCase):
             assert shift is None  
         except Exception:
             assert True
+
+    def test_schedule_shift_invalid_times(self):
+        admin = create_user("admin", "adminpass", "admin")
+        staff = create_user("staff", "staffpass", "staff")
+        schedule = Schedule(name="X", start_date=datetime.now(), created_by=admin.id)
+        db.session.add(schedule); db.session.commit()
+
+        start = datetime(2025, 10, 22, 16, 0, 0)
+        end = datetime(2025, 10, 22, 8, 0, 0)
+
+        with pytest.raises(ValueError):
+            schedule_shift(admin.id, staff.id, schedule.id, start, end)
 
     def test_get_shift_report(self):
         admin = create_user("superadmin", "superpass", "admin")
@@ -162,6 +177,23 @@ class UserUnitTests(unittest.TestCase):
         assert clocked_in_shift.clock_in is not None
         assert isinstance(clocked_in_shift.clock_in, datetime)
 
+    def test_clock_in_twice(self):
+        admin = create_user("admin_twice", "adminpass", "admin")
+        staff = create_user("staff_twice", "staffpass", "staff")
+
+        schedule = Schedule(name="Double Clock In", start_date=datetime.now(), created_by=admin.id)
+        db.session.add(schedule)
+        db.session.commit()
+
+        start = datetime(2025, 10, 24, 8, 0, 0)
+        end = datetime(2025, 10, 24, 16, 0, 0)
+        shift = schedule_shift(admin.id, staff.id, schedule.id, start, end)
+
+        clock_in(staff.id, shift.id)
+
+        with pytest.raises(ValueError, match= "Shift is already clocked in"):
+            clock_in(staff.id, shift.id)
+
     def test_clock_in_invalid_user(self):
         admin = create_user("admin_clockin", "adminpass", "admin")
         schedule = Schedule(name="Invalid Clock In", start_date=datetime.now(), created_by=admin.id)
@@ -195,6 +227,7 @@ class UserUnitTests(unittest.TestCase):
         end = datetime(2025, 10, 27, 16, 0, 0)
         shift = schedule_shift(admin.id, staff.id, schedule.id, start, end)
 
+        clock_in(staff.id, shift.id)
         clocked_out_shift = clock_out(staff.id, shift.id)
         assert clocked_out_shift.clock_out is not None
         assert isinstance(clocked_out_shift.clock_out, datetime)
@@ -219,6 +252,22 @@ class UserUnitTests(unittest.TestCase):
         with pytest.raises(ValueError) as e:
             clock_out(staff.id, 999)  
         assert str(e.value) == "Invalid shift for staff"
+
+    def test_clock_out_before_clock_in(self):
+        admin = create_user("admin", "adminpass", "admin")
+        staff = create_user("staff", "staffpass", "staff")
+
+        schedule = Schedule(name="Test Schedule", start_date=datetime.now(), created_by=admin.id)
+        db.session.add(schedule)
+        db.session.commit()
+
+        start = datetime(2025, 10, 27, 8, 0, 0)
+        end = datetime(2025, 10, 27, 16, 0, 0)
+        shift = schedule_shift(admin.id, staff.id, schedule.id, start, end)
+
+        with pytest.raises(ValueError, match="Shift has not been clocked in"):
+            clock_out(staff.id, shift.id)
+
 '''
     Integration Tests
 '''
