@@ -20,33 +20,6 @@ def init():
     initialize()
     print('database intialized')
 
-auth_cli = AppGroup('auth', help='Authentication commands')
-
-@auth_cli.command("login", help="Login and get JWT token")
-@click.argument("username")
-@click.argument("password")
-def login_command(username, password):
-    result = loginCLI(username, password)
-    if result["message"] == "Login successful":
-        token = result["token"]
-        with open("active_token.txt", "w") as f:
-            f.write(token)
-        print(f"✅ {result['message']}! JWT token saved for CLI use.")
-    else:
-        print(f"⚠️ {result['message']}")
-
-@auth_cli.command("logout", help="Logout a user by username")
-@click.argument("username")
-def logout_command(username):
-    from App.controllers.auth import logout
-    result = logout(username)
-    if os.path.exists("active_token.txt"):
-        os.remove("active_token.txt")
-    print(result["message"])
-    
-app.cli.add_command(auth_cli)
-
-
 user_cli = AppGroup('user', help='User object commands') 
 
 @user_cli.command("create", help="Creates a user")
