@@ -20,10 +20,11 @@ class Staff(User):
         shift = db.session.get(Shift, shift_id)
 
         if not shift or shift.staff_id != self.id:
-            raise ValueError("Invalid shift for this staff member")
+            raise ValueError("Invalid shift for staff")
 
         if shift.clock_in is not None:
             raise ValueError("Shift is already clocked in")
+        
 
         shift.clock_in = datetime.now(timezone.utc)
         db.session.commit()
@@ -34,9 +35,12 @@ class Staff(User):
         shift = db.session.get(Shift, shift_id)
 
         if not shift or shift.staff_id != self.id:
-            raise ValueError("Invalid shift for this staff member")
+            raise ValueError("Invalid shift for staff")
+        
+        if shift.clock_in is None:
+            raise ValueError("Shift has not been clocked in")
 
-        if shift.clock_in is not None:
+        if shift.clock_out is not None:
             raise ValueError("Shift is already clocked out")
 
         shift.clock_out = datetime.now(timezone.utc)
