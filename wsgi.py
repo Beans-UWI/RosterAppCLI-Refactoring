@@ -1,15 +1,13 @@
 import click, pytest, sys, os
-from flask.cli import with_appcontext, AppGroup
-from datetime import datetime
-from flask_jwt_extended import verify_jwt_in_request, get_jwt_identity
-
+from flask.cli import AppGroup
+from datetime import datetime, timezone
+from flask_jwt_extended import decode_token
 from App.database import db, get_migrate
-from App.models import User
-from App.schedulers import SchedulerService, SchedulerFactory
 from App.main import create_app 
+from App.models import Schedule, Staff
 from App.controllers import (
     create_user, get_all_users_json, get_all_users, initialize,
-    schedule_shift, get_combined_roster, clock_in, clock_out, get_shift_report, login,loginCLI, create_schedule
+    schedule_shift, get_combined_roster, clock_in, clock_out, get_shift_report, create_schedule, get_user
 )
 
 app = create_app()
@@ -19,33 +17,6 @@ migrate = get_migrate(app)
 def init():
     initialize()
     print('database intialized')
-
-auth_cli = AppGroup('auth', help='Authentication commands')
-
-@auth_cli.command("login", help="Login and get JWT token")
-@click.argument("username")
-@click.argument("password")
-def login_command(username, password):
-    result = loginCLI(username, password)
-    if result["message"] == "Login successful":
-        token = result["token"]
-        with open("active_token.txt", "w") as f:
-            f.write(token)
-        print(f"✅ {result['message']}! JWT token saved for CLI use.")
-    else:
-        print(f"⚠️ {result['message']}")
-
-@auth_cli.command("logout", help="Logout a user by username")
-@click.argument("username")
-def logout_command(username):
-    from App.controllers.auth import logout
-    result = logout(username)
-    if os.path.exists("active_token.txt"):
-        os.remove("active_token.txt")
-    print(result["message"])
-    
-app.cli.add_command(auth_cli)
-
 
 user_cli = AppGroup('user', help='User object commands') 
 
@@ -77,7 +48,6 @@ shift_cli = AppGroup('shift', help='Shift management commands')
 @click.argument("start")
 @click.argument("end")
 def schedule_shift_command(staff_id, schedule_id, start, end):
-    from datetime import datetime
     admin = require_admin_login()
     start_time = datetime.fromisoformat(start)
     end_time = datetime.fromisoformat(end)
@@ -123,10 +93,6 @@ app.cli.add_command(shift_cli)
 
 
 def require_admin_login():
-    import os
-    from flask_jwt_extended import decode_token
-    from App.controllers import get_user
-
     if not os.path.exists("active_token.txt"):
         raise PermissionError("⚠️ No active session. Please login first.")
 
@@ -144,10 +110,6 @@ def require_admin_login():
         raise PermissionError(f"Invalid or expired token. Please login again. ({e})")
 
 def require_staff_login():
-    import os
-    from flask_jwt_extended import decode_token
-    from App.controllers import get_user
-
     if not os.path.exists("active_token.txt"):
         raise PermissionError("⚠️ No active session. Please login first.")
 
@@ -170,16 +132,14 @@ schedule_cli = AppGroup('schedule', help='Schedule management commands')
 @click.argument("name")
 @click.argument("strategy")
 def create_schedule_command(name, strategy):
-    from App.models import Schedule, Staff
     admin = require_admin_login()
     staff_list = Staff.query.all()
-    schedule = create_schedule(admin_id=admin.id, scheduleName=name, strategy=strategy, shift_length_hours=12, week_start=datetime.utcnow(), staff_list=staff_list)
+    schedule = create_schedule(admin_id=admin.id, schedule_name=name, strategy=strategy, shift_length_hours=12, week_start=datetime.now(timezone.utc), staff_list=staff_list)
     print(f"✅ Schedule created: {schedule.get_json()}")
 
 
 @schedule_cli.command("list", help="List all schedules")
 def list_schedules_command():
-    from App.models import Schedule
     admin = require_admin_login()
     schedules = Schedule.query.all()
     print(f"✅ Found {len(schedules)} schedule(s):")
@@ -190,7 +150,6 @@ def list_schedules_command():
 @schedule_cli.command("view", help="View a schedule and its shifts")
 @click.argument("schedule_id", type=int)
 def view_schedule_command(schedule_id):
-    from App.models import Schedule
     admin = require_admin_login()
     schedule = db.session.get(Schedule, schedule_id)
     if not schedule:
