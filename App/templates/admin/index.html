@@ -1,5 +1,558 @@
-{% extends 'admin/master.html' %}
+{% extends "admin/layout.html" %}
 
-{% block body %}
-  <p>Hello world</p>
+{% block admin_content %}
+    {# Schedule View #}
+    <div id="schedule-view" class="admin-view-section" {% if shifts is not defined %}style="display: none;"{% endif %}>
+    <div class="page-header">
+        <h1><i class="fas fa-calendar-week"></i> Schedule View</h1>
+        <p class="subtitle">View all employee schedules</p>
+    </div>
+
+    <div class="schedule-container">
+        <div class="schedule-table-wrapper">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Employee Name</th>
+                        <th>Date</th>
+                        <th>Time</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if shifts %}
+                        {% for shift in shifts %}
+                        <tr>
+                            <td>
+                                <div class="employee-cell">
+                                    <i class="fas fa-user-circle"></i>
+                                    <span>{{ shift.staff_name or 'N/A' }}</span>
+                                </div>
+                            </td>
+                            <td>{{ shift.start_date or 'N/A' }}</td>
+                            <td>
+                                {% if shift.start_time_only and shift.end_time_only %}
+                                    {{ shift.start_time_only }} - {{ shift.end_time_only }}
+                                {% else %}
+                                    N/A
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if shift.clock_in and shift.clock_out %}
+                                    <span class="badge badge-success">Completed</span>
+                                {% elif shift.clock_in %}
+                                    <span class="badge badge-warning">In Progress</span>
+                                {% else %}
+                                    <span class="badge badge-info">Scheduled</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="4" class="empty-state">
+                                <i class="fas fa-calendar-times"></i>
+                                <p>No shifts scheduled</p>
+                            </td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    </div>
+
+    {# User List View #}
+    <div id="users-view" class="admin-view-section" {% if users is not defined %}style="display: none;"{% endif %}>
+    <div class="page-header">
+        <h1><i class="fas fa-users"></i> User List</h1>
+        <p class="subtitle">Manage system users</p>
+    </div>
+
+    <div class="user-list-container">
+        <div class="search-bar">
+            <i class="fas fa-search"></i>
+            <input type="text" id="search-input" placeholder="Search users by name, role, or ID...">
+        </div>
+
+        <div class="users-grid" id="users-grid">
+            {% if users %}
+                {% for user in users %}
+                <div class="user-card" data-name="{{ user.username }}" data-role="{{ user.role }}" data-id="{{ user.id }}">
+                    <div class="user-avatar">
+                        <i class="fas fa-user-circle"></i>
+                    </div>
+                    <div class="user-info">
+                        <h3>{{ user.username }}</h3>
+                        <div class="user-details">
+                            <div class="detail-row">
+                                <i class="fas fa-id-badge"></i>
+                                <span>Staff ID: {{ user.id }}</span>
+                            </div>
+                            <div class="detail-row">
+                                <i class="fas fa-user-tag"></i>
+                                <span>Role: <strong>{{ user.role|title }}</strong></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="empty-state">
+                    <i class="fas fa-users-slash"></i>
+                    <p>No users found</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+    </div>
+
+    {# Schedule Shift View #}
+    <div id="schedule-shift-view" class="admin-view-section" {% if not (staff_list is defined and schedules is defined) %}style="display: none;"{% endif %}>
+    <div class="page-header">
+        <h1><i class="fas fa-calendar-plus"></i> Schedule Shift</h1>
+        <p class="subtitle">Assign shifts to employees</p>
+    </div>
+
+    <div class="schedule-shift-container">
+        <form id="schedule-shift-form" class="schedule-form">
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="employee">
+                        <i class="fas fa-user"></i> Select Employee
+                    </label>
+                    <select id="employee" name="staffId" required>
+                        <option value="">Choose an employee...</option>
+                        {% if staff_list %}
+                            {% for staff in staff_list %}
+                            <option value="{{ staff.id }}">{{ staff.username }}</option>
+                            {% endfor %}
+                        {% endif %}
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="schedule">
+                        <i class="fas fa-calendar"></i> Select Schedule
+                    </label>
+                    <select id="schedule" name="scheduleId" required>
+                        <option value="">Choose a schedule...</option>
+                        {% if schedules %}
+                            {% for schedule in schedules %}
+                            <option value="{{ schedule.id }}">{{ schedule.name }}</option>
+                            {% endfor %}
+                        {% endif %}
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="date">
+                        <i class="fas fa-calendar-day"></i> Date
+                    </label>
+                    <input type="date" id="date" name="date" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="start-time">
+                        <i class="fas fa-clock"></i> Start Time
+                    </label>
+                    <input type="time" id="start-time" name="startTime" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="end-time">
+                        <i class="fas fa-clock"></i> End Time
+                    </label>
+                    <input type="time" id="end-time" name="endTime" required>
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-large">
+                <i class="fas fa-plus"></i> Add Shift
+            </button>
+        </form>
+    </div>
+    </div>
+
+    {# Create Schedule View #}
+    <div id="create-schedule-view" class="admin-view-section" {% if not (staff_list is defined and schedules is not defined) %}style="display: none;"{% endif %}>
+    <div class="page-header">
+        <h1><i class="fas fa-plus-circle"></i> Create Schedule</h1>
+        <p class="subtitle">Create a new schedule and assign staff</p>
+    </div>
+
+    <div class="create-schedule-container">
+        <div class="schedule-form-section">
+            <form id="create-schedule-form" class="schedule-form">
+                <div class="form-group">
+                    <label for="schedule-name">
+                        <i class="fas fa-tag"></i> Schedule Name
+                    </label>
+                    <input type="text" id="schedule-name" name="scheduleName" placeholder="e.g., Weekly Schedule - January 2025" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="week-start">
+                        <i class="fas fa-calendar-week"></i> Week Start Date
+                    </label>
+                    <input type="date" id="week-start" name="weekStart" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="shift-length">
+                        <i class="fas fa-hourglass-half"></i> Shift Length (hours)
+                    </label>
+                    <input type="number" id="shift-length" name="shiftLengthHours" min="1" max="24" value="8" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="strategy">
+                        <i class="fas fa-cogs"></i> Scheduling Strategy
+                    </label>
+                    <select id="strategy" name="strategy" required>
+                        <option value="evenDistribution">Even Distribution</option>
+                        <option value="balanceShifts">Balance Shifts</option>
+                        <option value="minimizeDays">Minimize Days</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <fieldset>
+                        <legend>
+                            <i class="fas fa-users"></i> Select Staff
+                        </legend>
+                        <div class="staff-selection">
+                            {% if staff_list %}
+                                {% for staff in staff_list %}
+                                <label class="staff-checkbox">
+                                    <input type="checkbox" name="staffList" value="{{ staff.id }}" id="staff-{{ staff.id }}">
+                                    <span>{{ staff.username }}</span>
+                                </label>
+                                {% endfor %}
+                            {% endif %}
+                        </div>
+                    </fieldset>
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-large">
+                    <i class="fas fa-plus"></i> Create Schedule
+                </button>
+            </form>
+        </div>
+    </div>
+    </div>
+
+    {# Shift Report View #}
+    <div id="shift-report-view" class="admin-view-section" {% if report_data is not defined %}style="display: none;"{% endif %}>
+    <div class="page-header">
+        <h1><i class="fas fa-chart-bar"></i> Shift Report</h1>
+        <p class="subtitle">View and analyze shift data</p>
+    </div>
+
+    <div class="report-container">
+        <div class="report-filters">
+            <div class="filter-group">
+                <label for="report-type">
+                    <i class="fas fa-filter"></i> Select Report Type
+                </label>
+                <select id="report-type" name="reportType">
+                    <option value="daily">Daily</option>
+                    <option value="weekly">Weekly</option>
+                    <option value="monthly">Monthly</option>
+                </select>
+            </div>
+
+            <div class="filter-group">
+                <fieldset>
+                    <legend>
+                        <i class="fas fa-calendar-alt"></i> Date Range
+                    </legend>
+                    <div class="date-range">
+                        <label for="start-date" class="sr-only">Start Date</label>
+                        <input type="date" id="start-date" name="startDate" aria-label="Start Date">
+                        <span>To</span>
+                        <label for="end-date" class="sr-only">End Date</label>
+                        <input type="date" id="end-date" name="endDate" aria-label="End Date">
+                    </div>
+                </fieldset>
+            </div>
+
+            <button class="btn btn-primary" id="generate-report-btn">
+                <i class="fas fa-sync"></i> Generate Report
+            </button>
+        </div>
+
+        <div class="report-table">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Employee</th>
+                        <th>Date</th>
+                        <th>Start Time</th>
+                        <th>End Time</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody id="report-tbody">
+                    {% if report_data %}
+                        {% for shift in report_data %}
+                        <tr>
+                            <td>{{ shift.staff_name or 'N/A' }}</td>
+                            <td>{{ shift.start_date or 'N/A' }}</td>
+                            <td>{{ shift.start_time_only or 'N/A' }}</td>
+                            <td>{{ shift.end_time_only or 'N/A' }}</td>
+                            <td>
+                                {% if shift.clock_in and shift.clock_out %}
+                                    <span class="badge badge-success">Completed</span>
+                                {% elif shift.clock_in %}
+                                    <span class="badge badge-warning">In Progress</span>
+                                {% else %}
+                                    <span class="badge badge-info">Scheduled</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="5" class="empty-state">No report data available</td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    </div>
+
+    {# Create Account View #}
+    <div id="create-account-view" class="admin-view-section" {% if shifts is defined or users is defined or staff_list is defined or report_data is defined %}style="display: none;"{% endif %}>
+    <div class="page-header">
+        <h1><i class="fas fa-user-plus"></i> Create Account</h1>
+        <p class="subtitle">Add a new user to the system</p>
+    </div>
+
+    <div class="create-account-container">
+        <div class="account-form-card">
+            <form id="create-account-form" method="POST" action="{{ url_for('admin_view.create_account_action') }}" class="account-form">
+                <div class="form-group">
+                    <label for="name">
+                        <i class="fas fa-user"></i> Name
+                    </label>
+                    <input 
+                        type="text" 
+                        id="name" 
+                        name="username" 
+                        placeholder="Enter full name" 
+                        required
+                        autocomplete="name"
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="email">
+                        <i class="fas fa-envelope"></i> Email
+                    </label>
+                    <input 
+                        type="email" 
+                        id="email" 
+                        name="email" 
+                        placeholder="Enter email address" 
+                        autocomplete="email"
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="password">
+                        <i class="fas fa-lock"></i> Password
+                    </label>
+                    <input 
+                        type="password" 
+                        id="password" 
+                        name="password" 
+                        placeholder="Enter password" 
+                        required
+                        autocomplete="new-password"
+                        minlength="6"
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="confirm-password">
+                        <i class="fas fa-lock"></i> Confirm Password
+                    </label>
+                    <input 
+                        type="password" 
+                        id="confirm-password" 
+                        name="confirmPassword" 
+                        placeholder="Confirm password" 
+                        required
+                        autocomplete="new-password"
+                        minlength="6"
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="position">
+                        <i class="fas fa-briefcase"></i> Position
+                    </label>
+                    <input 
+                        type="text" 
+                        id="position" 
+                        name="position" 
+                        placeholder="Enter job position"
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="role">
+                        <i class="fas fa-user-tag"></i> Role
+                    </label>
+                    <select id="role" name="role" required>
+                        <option value="">Select a role...</option>
+                        <option value="staff">Staff</option>
+                        <option value="admin">Admin</option>
+                        <option value="user">User</option>
+                    </select>
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-large btn-block">
+                    <i class="fas fa-user-plus"></i> Create Account
+                </button>
+            </form>
+        </div>
+    </div>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Show/hide views based on current URL
+    document.addEventListener('DOMContentLoaded', function() {
+        const currentPath = window.location.pathname;
+        const views = {
+            '/admin': 'schedule-view',
+            '/admin/schedule': 'schedule-view',
+            '/admin/users': 'users-view',
+            '/admin/schedule-shift': 'schedule-shift-view',
+            '/admin/create-schedule': 'create-schedule-view',
+            '/admin/shift-report': 'shift-report-view',
+            '/admin/create-account': 'create-account-view'
+        };
+        
+        // Hide all views
+        document.querySelectorAll('.admin-view-section').forEach(view => {
+            view.style.display = 'none';
+        });
+        
+        // Show the correct view
+        const viewId = views[currentPath] || 'schedule-view';
+        const targetView = document.getElementById(viewId);
+        if (targetView) {
+            targetView.style.display = 'block';
+        }
+    });
+    
+    // User search functionality
+    {% if users is defined %}
+    document.getElementById('search-input').addEventListener('input', function(e) {
+        const searchTerm = e.target.value.toLowerCase();
+        const userCards = document.querySelectorAll('.user-card');
+        
+        userCards.forEach(card => {
+            const name = card.dataset.name.toLowerCase();
+            const role = card.dataset.role.toLowerCase();
+            const id = card.dataset.id;
+            
+            if (name.includes(searchTerm) || role.includes(searchTerm) || id.includes(searchTerm)) {
+                card.style.display = 'block';
+            } else {
+                card.style.display = 'none';
+            }
+        });
+    });
+    {% endif %}
+
+    // Schedule shift form
+    {% if staff_list is defined and schedules is defined %}
+    document.getElementById('schedule-shift-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const formData = new FormData(this);
+        const date = formData.get('date');
+        const startTime = formData.get('startTime');
+        const endTime = formData.get('endTime');
+        
+        const startDateTime = `${date} ${startTime}:00`;
+        const endDateTime = `${date} ${endTime}:00`;
+        
+        fetch('{{ url_for("admin_view.createShift") }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                staffId: parseInt(formData.get('staffId')),
+                scheduleId: parseInt(formData.get('scheduleId')),
+                startTime: startDateTime,
+                endTime: endDateTime
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                alert('Error: ' + data.error);
+            } else {
+                alert('Shift created successfully!');
+                this.reset();
+            }
+        });
+    });
+    {% endif %}
+
+    // Create schedule form
+    {% if staff_list is defined and schedules is not defined %}
+    document.getElementById('create-schedule-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const formData = new FormData(this);
+        const staffList = Array.from(document.querySelectorAll('input[name="staffList"]:checked')).map(cb => parseInt(cb.value));
+        
+        fetch('{{ url_for("admin_view.createSchedule") }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                scheduleName: formData.get('scheduleName'),
+                weekStart: formData.get('weekStart'),
+                shiftLengthHours: parseInt(formData.get('shiftLengthHours')),
+                strategy: formData.get('strategy'),
+                staffList: staffList
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                alert('Error: ' + data.error);
+            } else {
+                alert('Schedule created successfully!');
+                this.reset();
+            }
+        });
+    });
+    {% endif %}
+
+    // Create account form
+    {% if not shifts and not users and not staff_list and not report_data %}
+    document.getElementById('create-account-form').addEventListener('submit', function(e) {
+        const password = document.getElementById('password').value;
+        const confirmPassword = document.getElementById('confirm-password').value;
+        
+        if (password !== confirmPassword) {
+            e.preventDefault();
+            alert('Passwords do not match!');
+            return false;
+        }
+    });
+    {% endif %}
+</script>
 {% endblock %}

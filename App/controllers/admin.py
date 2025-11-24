@@ -14,6 +14,7 @@ def create_schedule(admin_id, schedule_name, strategy, staff_list, shift_length_
     service = SchedulerService(scheduler)
 
     # Apply the selected scheduling strategy's implementation to generate a new schedule
+    # Note: The scheduler already adds and commits the schedule to the database
     new_schedule = service.generate_schedule(
         admin_id=admin_id,
         name=schedule_name,
@@ -21,9 +22,6 @@ def create_schedule(admin_id, schedule_name, strategy, staff_list, shift_length_
         shift_length_hours=shift_length_hours,
         week_start=week_start,
     )
-
-    db.session.add(new_schedule)
-    db.session.commit()
 
     return new_schedule
 

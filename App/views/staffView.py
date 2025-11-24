@@ -1,4 +1,4 @@
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify, request, render_template
 from App.controllers import staff
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from sqlalchemy.exc import SQLAlchemyError
@@ -10,6 +10,27 @@ staff_views = Blueprint('staff_views', __name__, template_folder='../templates')
 # 2. Clock in 
 # 3. Clock out
 # 4. View specific shift details
+
+
+@staff_views.route('/staff', methods=['GET'])
+@staff_views.route('/staff/schedule', methods=['GET'])
+@jwt_required()
+def staff_schedule():
+    staff_id = get_jwt_identity()
+    roster = staff.get_combined_roster(staff_id)
+    return render_template('staff/index.html', shifts=roster)
+
+# Page route - renders template
+@staff_views.route('/staff/clock-in', methods=['GET'])
+@jwt_required()
+def staff_clock_in():
+    return render_template('staff/index.html')
+
+# Page route - renders template
+@staff_views.route('/staff/clock-out', methods=['GET'])
+@jwt_required()
+def staff_clock_out():
+    return render_template('staff/index.html')
 
 @staff_views.route('/staff/roster', methods=['GET'])
 @jwt_required()
