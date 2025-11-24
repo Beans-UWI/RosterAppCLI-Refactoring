@@ -1,6 +1,9 @@
-from App.models import Shift
+from App.models import Shift, Staff
 from App.database import db
 from App.controllers.user import get_user
+
+def get_all_staff():
+    return Staff.query.all()
 
 def get_combined_roster(staff_id):
     staff = get_user(staff_id)
