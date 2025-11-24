@@ -15,7 +15,7 @@ from App.controllers import (
     get_combined_roster,
     clock_in,
     clock_out,
-    get_shift 
+    get_shift,
 )
 
 
@@ -53,16 +53,19 @@ class UserUnitTests(unittest.TestCase):
         user = User(username="tester", password=password)
         assert user.password != password
         assert user.check_password(password) is True
+        assert user.check_password("wrongpass") is False
 
     def test_check_password(self):
         password = "mypass"
         user = User("bob", password)
         assert user.check_password(password)
+        assert not user.check_password("wrongpass")
+
 # Admin unit tests
     def test_schedule_shift_valid(self):
         admin = create_user("admin1", "adminpass", "admin")
         staff = create_user("staff1", "staffpass", "staff")
-        schedule = Schedule(name="Morning Schedule", created_by=admin.id)
+        schedule = Schedule(name="Morning Schedule", start_date=datetime.now(), created_by=admin.id)
         db.session.add(schedule)
         db.session.commit()
 
@@ -90,13 +93,25 @@ class UserUnitTests(unittest.TestCase):
         except Exception:
             assert True
 
+    def test_schedule_shift_invalid_times(self):
+        admin = create_user("admin", "adminpass", "admin")
+        staff = create_user("staff", "staffpass", "staff")
+        schedule = Schedule(name="X", start_date=datetime.now(), created_by=admin.id)
+        db.session.add(schedule); db.session.commit()
+
+        start = datetime(2025, 10, 22, 16, 0, 0)
+        end = datetime(2025, 10, 22, 8, 0, 0)
+
+        with pytest.raises(ValueError):
+            schedule_shift(admin.id, staff.id, schedule.id, start, end)
+
     def test_get_shift_report(self):
         admin = create_user("superadmin", "superpass", "admin")
         staff = create_user("worker1", "workerpass", "staff")
         db.session.add_all([admin, staff])
         db.session.commit()
 
-        schedule = Schedule(name="Weekend Schedule", created_by=admin.id)
+        schedule = Schedule(name="Weekend Schedule", start_date=datetime.now(), created_by=admin.id)
         db.session.add(schedule)
         db.session.commit()
 
@@ -124,7 +139,7 @@ class UserUnitTests(unittest.TestCase):
     def test_get_combined_roster_valid(self):
         staff = create_user("staff3", "pass123", "staff")
         admin = create_user("admin3", "adminpass", "admin")
-        schedule = Schedule(name="Test Schedule", created_by=admin.id)
+        schedule = Schedule(name="Test Schedule", start_date=datetime.now(), created_by=admin.id)
         db.session.add(schedule)
         db.session.commit()
 
@@ -150,7 +165,7 @@ class UserUnitTests(unittest.TestCase):
         admin = create_user("admin_clock", "adminpass", "admin")
         staff = create_user("staff_clock", "staffpass", "staff")
 
-        schedule = Schedule(name="Clock Schedule", created_by=admin.id)
+        schedule = Schedule(name="Clock Schedule", start_date=datetime.now(), created_by=admin.id)
         db.session.add(schedule)
         db.session.commit()
 
@@ -162,9 +177,26 @@ class UserUnitTests(unittest.TestCase):
         assert clocked_in_shift.clock_in is not None
         assert isinstance(clocked_in_shift.clock_in, datetime)
 
+    def test_clock_in_twice(self):
+        admin = create_user("admin_twice", "adminpass", "admin")
+        staff = create_user("staff_twice", "staffpass", "staff")
+
+        schedule = Schedule(name="Double Clock In", start_date=datetime.now(), created_by=admin.id)
+        db.session.add(schedule)
+        db.session.commit()
+
+        start = datetime(2025, 10, 24, 8, 0, 0)
+        end = datetime(2025, 10, 24, 16, 0, 0)
+        shift = schedule_shift(admin.id, staff.id, schedule.id, start, end)
+
+        clock_in(staff.id, shift.id)
+
+        with pytest.raises(ValueError, match= "Shift is already clocked in"):
+            clock_in(staff.id, shift.id)
+
     def test_clock_in_invalid_user(self):
         admin = create_user("admin_clockin", "adminpass", "admin")
-        schedule = Schedule(name="Invalid Clock In", created_by=admin.id)
+        schedule = Schedule(name="Invalid Clock In", start_date=datetime.now(), created_by=admin.id)
         db.session.add(schedule)
         db.session.commit()
 
@@ -187,7 +219,7 @@ class UserUnitTests(unittest.TestCase):
         admin = create_user("admin_clockout", "adminpass", "admin")
         staff = create_user("staff_clockout", "staffpass", "staff")
 
-        schedule = Schedule(name="ClockOut Schedule", created_by=admin.id)
+        schedule = Schedule(name="ClockOut Schedule", start_date=datetime.now(), created_by=admin.id)
         db.session.add(schedule)
         db.session.commit()
 
@@ -195,13 +227,14 @@ class UserUnitTests(unittest.TestCase):
         end = datetime(2025, 10, 27, 16, 0, 0)
         shift = schedule_shift(admin.id, staff.id, schedule.id, start, end)
 
+        clock_in(staff.id, shift.id)
         clocked_out_shift = clock_out(staff.id, shift.id)
         assert clocked_out_shift.clock_out is not None
         assert isinstance(clocked_out_shift.clock_out, datetime)
 
     def test_clock_out_invalid_user(self):
         admin = create_user("admin_invalid_out", "adminpass", "admin")
-        schedule = Schedule(name="Invalid ClockOut Schedule", created_by=admin.id)
+        schedule = Schedule(name="Invalid ClockOut Schedule", start_date=datetime.now(), created_by=admin.id)
         db.session.add(schedule)
         db.session.commit()
 
@@ -219,6 +252,22 @@ class UserUnitTests(unittest.TestCase):
         with pytest.raises(ValueError) as e:
             clock_out(staff.id, 999)  
         assert str(e.value) == "Invalid shift for staff"
+
+    def test_clock_out_before_clock_in(self):
+        admin = create_user("admin", "adminpass", "admin")
+        staff = create_user("staff", "staffpass", "staff")
+
+        schedule = Schedule(name="Test Schedule", start_date=datetime.now(), created_by=admin.id)
+        db.session.add(schedule)
+        db.session.commit()
+
+        start = datetime(2025, 10, 27, 8, 0, 0)
+        end = datetime(2025, 10, 27, 16, 0, 0)
+        shift = schedule_shift(admin.id, staff.id, schedule.id, start, end)
+
+        with pytest.raises(ValueError, match="Shift has not been clocked in"):
+            clock_out(staff.id, shift.id)
+
 '''
     Integration Tests
 '''
@@ -277,7 +326,7 @@ class UsersIntegrationTests(unittest.TestCase):
         admin = create_user("admin1", "adminpass", "admin")
         staff = create_user("staff1", "staffpass", "staff")
 
-        schedule = Schedule(name="Week 1 Schedule", created_by=admin.id)
+        schedule = Schedule(name="Week 1 Schedule", start_date=datetime.now(), created_by=admin.id)
         db.session.add(schedule)
         db.session.commit()
 
@@ -296,7 +345,7 @@ class UsersIntegrationTests(unittest.TestCase):
         staff = create_user("jane", "janepass", "staff")
         other_staff = create_user("mark", "markpass", "staff")
 
-        schedule = Schedule(name="Shared Roster", created_by=admin.id)
+        schedule = Schedule(name="Shared Roster", start_date=datetime.now(), created_by=admin.id)
         db.session.add(schedule)
         db.session.commit()
 
@@ -314,7 +363,7 @@ class UsersIntegrationTests(unittest.TestCase):
         admin = create_user("admin", "adminpass", "admin")
         staff = create_user("lee", "leepass", "staff")
 
-        schedule = Schedule(name="Daily Schedule", created_by=admin.id)
+        schedule = Schedule(name="Daily Schedule", start_date=datetime.now(), created_by=admin.id)
         db.session.add(schedule)
         db.session.commit()
 
@@ -336,7 +385,7 @@ class UsersIntegrationTests(unittest.TestCase):
         admin = create_user("boss", "boss123", "admin")
         staff = create_user("sam", "sampass", "staff")
 
-        schedule = Schedule(name="Weekly Schedule", created_by=admin.id)
+        schedule = Schedule(name="Weekly Schedule", start_date=datetime.now(), created_by=admin.id)
         db.session.add(schedule)
         db.session.commit()
 
@@ -354,7 +403,7 @@ class UsersIntegrationTests(unittest.TestCase):
         staff = create_user("worker", "workpass", "staff")
 
         # Create schedule
-        schedule = Schedule(name="Restricted Schedule", created_by=admin.id)
+        schedule = Schedule(name="Restricted Schedule", start_date=datetime.now(), created_by=admin.id)
         db.session.add(schedule)
         db.session.commit()
 

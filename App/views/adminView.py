@@ -1,6 +1,6 @@
 from flask import Blueprint, jsonify, request, render_template, flash, redirect
 from datetime import datetime
-from App.controllers import admin
+from App.controllers import admin, get_all_staff
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from sqlalchemy.exc import SQLAlchemyError
 from App.models import Shift, User, Staff, Schedule
@@ -83,31 +83,41 @@ def createSchedule():
         strategy = data.get("strategy") # gets the strategy from the request body
         staff_list_ids = data.get("staffList") # gets the staffList from the request body (list of IDs)
         shift_length_hours = data.get("shiftLengthHours") # gets the shiftLengthHours from the request body
-        week_start_str = data.get("weekStart") # gets the weekStart from the request body (string)
+        week_start = data.get("weekStart") # gets the weekStart from the request body
+
+        schedule = admin.create_schedule(admin_id, schedule_name, strategy, staff_list, shift_length_hours, week_start)  # Call controller method
         
-        # Parse week_start from string to datetime
-        if week_start_str:
-            try:
-                # Parse date string (format: "YYYY-MM-DD")
-                from datetime import timezone
-                week_start = datetime.strptime(week_start_str, "%Y-%m-%d")
-                # Set to UTC timezone and set time to midnight
-                week_start = week_start.replace(tzinfo=timezone.utc)
-            except ValueError as e:
-                return jsonify({"error": f"Invalid date format: {week_start_str}. Expected YYYY-MM-DD"}), 400
-        else:
-            week_start = None
-        
-        # Convert staff IDs to Staff objects
-        staff_list = []
-        if staff_list_ids:
-            for staff_id in staff_list_ids:
-                staff = db.session.get(Staff, staff_id)
-                if staff:
-                    staff_list.append(staff)
-                else:
-                    return jsonify({"error": f"Invalid staff ID: {staff_id}"}), 400
-        
+        return jsonify(schedule.get_json()), 200 # Return the created schedule as JSON
+    except (PermissionError, ValueError) as e:
+        return jsonify({"error": str(e)}), 403
+    except SQLAlchemyError:
+        return jsonify({"error": "Database error"}), 500
+    
+
+@admin_view.route('/api/admin/create-schedule', methods=['POST'])
+@jwt_required()
+def createSchedule_api():
+    try:
+        admin_id = get_jwt_identity()
+        data = request.get_json()
+        schedule_name = data.get("scheduleName") # gets the scheduleName from the request body
+        strategy = data.get("strategy") # gets the strategy from the request body
+        staff_list = data.get("staffList") # gets the staffList from the request body
+        shift_length_hours = data.get("shiftLengthHours") # gets the shiftLengthHours from the request body
+        week_start_str = data.get("weekStart") # gets the weekStart from the request body
+
+        raw_staff_list = data.get("staffList", [])
+        staff_ids = [m.get("id") for m in raw_staff_list if m.get("id") is not None]
+        staff_list = get_all_staff()
+        if len(staff_list) != len(staff_ids):
+            return jsonify({"error": "One or more staff IDs are invalid"}), 400
+
+        # 2) weekStart: string -> datetime
+        try:
+            week_start = datetime.fromisoformat(week_start_str)
+        except ValueError:
+            return jsonify({"error": "weekStart must be a valid ISO datetime string"}), 400
+
         schedule = admin.create_schedule(admin_id, schedule_name, strategy, staff_list, shift_length_hours, week_start)  # Call controller method
         
         return jsonify(schedule.get_json()), 200 # Return the created schedule as JSON

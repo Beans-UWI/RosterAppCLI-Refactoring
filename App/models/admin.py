@@ -25,10 +25,15 @@ class Admin(User):
             end_time=end_time
         )
 
+        if end_time <= start_time:
+            raise ValueError("Shift end time must be after start time")
+    
         db.session.add(new_shift)
         db.session.commit()
 
         return new_shift
     
-    def view_report(self):
+    def get_report(self):
         return [shift.get_json() for shift in Shift.query.order_by(Shift.start_time).all()]
+    
+
