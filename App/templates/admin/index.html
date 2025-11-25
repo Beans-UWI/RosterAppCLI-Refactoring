@@ -115,7 +115,7 @@
     </div>
 
     <div class="schedule-shift-container">
-        <form id="schedule-shift-form" class="schedule-form">
+        <form id="schedule-shift-form" class="schedule-form" method="POST" action="{{ url_for('admin_view.createShift') }}">
             <div class="form-row">
                 <div class="form-group">
                     <label for="employee">
@@ -185,7 +185,7 @@
 
     <div class="create-schedule-container">
         <div class="schedule-form-section">
-            <form id="create-schedule-form" class="schedule-form">
+            <form id="create-schedule-form" class="schedule-form" method="POST" action="{{ url_for('admin_view.createSchedule') }}">
                 <div class="form-group">
                     <label for="schedule-name">
                         <i class="fas fa-tag"></i> Schedule Name
@@ -252,15 +252,16 @@
     </div>
 
     <div class="report-container">
-        <div class="report-filters">
+        <form class="report-filters" method="GET" action="{{ url_for('admin_view.admin_shift_report') }}">
             <div class="filter-group">
                 <label for="report-type">
                     <i class="fas fa-filter"></i> Select Report Type
                 </label>
                 <select id="report-type" name="reportType">
-                    <option value="daily">Daily</option>
-                    <option value="weekly">Weekly</option>
-                    <option value="monthly">Monthly</option>
+                    <option value="" {% if not selected_report_type %}selected{% endif %}>All Shifts</option>
+                    <option value="daily" {% if selected_report_type == 'daily' %}selected{% endif %}>Daily</option>
+                    <option value="weekly" {% if selected_report_type == 'weekly' %}selected{% endif %}>Weekly</option>
+                    <option value="monthly" {% if selected_report_type == 'monthly' %}selected{% endif %}>Monthly</option>
                 </select>
             </div>
 
@@ -271,18 +272,18 @@
                     </legend>
                     <div class="date-range">
                         <label for="start-date" class="sr-only">Start Date</label>
-                        <input type="date" id="start-date" name="startDate" aria-label="Start Date">
+                        <input type="date" id="start-date" name="startDate" aria-label="Start Date" value="{{ selected_start_date or '' }}">
                         <span>To</span>
                         <label for="end-date" class="sr-only">End Date</label>
-                        <input type="date" id="end-date" name="endDate" aria-label="End Date">
+                        <input type="date" id="end-date" name="endDate" aria-label="End Date" value="{{ selected_end_date or '' }}">
                     </div>
                 </fieldset>
             </div>
 
-            <button class="btn btn-primary" id="generate-report-btn">
+            <button type="submit" class="btn btn-primary">
                 <i class="fas fa-sync"></i> Generate Report
             </button>
-        </div>
+        </form>
 
         <div class="report-table">
             <table class="data-table">
@@ -473,86 +474,5 @@
     });
     {% endif %}
 
-    // Schedule shift form
-    {% if staff_list is defined and schedules is defined %}
-    document.getElementById('schedule-shift-form').addEventListener('submit', function(e) {
-        e.preventDefault();
-        const formData = new FormData(this);
-        const date = formData.get('date');
-        const startTime = formData.get('startTime');
-        const endTime = formData.get('endTime');
-        
-        const startDateTime = `${date} ${startTime}:00`;
-        const endDateTime = `${date} ${endTime}:00`;
-        
-        fetch('{{ url_for("admin_view.createShift") }}', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                staffId: parseInt(formData.get('staffId')),
-                scheduleId: parseInt(formData.get('scheduleId')),
-                startTime: startDateTime,
-                endTime: endDateTime
-            })
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.error) {
-                alert('Error: ' + data.error);
-            } else {
-                alert('Shift created successfully!');
-                this.reset();
-            }
-        });
-    });
-    {% endif %}
-
-    // Create schedule form
-    {% if staff_list is defined and schedules is not defined %}
-    document.getElementById('create-schedule-form').addEventListener('submit', function(e) {
-        e.preventDefault();
-        const formData = new FormData(this);
-        const staffList = Array.from(document.querySelectorAll('input[name="staffList"]:checked')).map(cb => parseInt(cb.value));
-        
-        fetch('{{ url_for("admin_view.createSchedule") }}', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                scheduleName: formData.get('scheduleName'),
-                weekStart: formData.get('weekStart'),
-                shiftLengthHours: parseInt(formData.get('shiftLengthHours')),
-                strategy: formData.get('strategy'),
-                staffList: staffList
-            })
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.error) {
-                alert('Error: ' + data.error);
-            } else {
-                alert('Schedule created successfully!');
-                this.reset();
-            }
-        });
-    });
-    {% endif %}
-
-    // Create account form
-    {% if not shifts and not users and not staff_list and not report_data %}
-    document.getElementById('create-account-form').addEventListener('submit', function(e) {
-        const password = document.getElementById('password').value;
-        const confirmPassword = document.getElementById('confirm-password').value;
-        
-        if (password !== confirmPassword) {
-            e.preventDefault();
-            alert('Passwords do not match!');
-            return false;
-        }
-    });
-    {% endif %}
 </script>
 {% endblock %}
