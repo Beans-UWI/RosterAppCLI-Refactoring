@@ -16,9 +16,12 @@ class Shift(db.Model):
             "id": self.id,
             "staff_id": self.staff_id,
             "staff_name": self.staff.username if self.staff else None,
-            "start_time": self.start_time.isoformat(),
+            "start_time": self.start_time.isoformat() if self.start_time else None,
+            "start_date": self.start_time.strftime("%Y-%m-%d") if self.start_time else None,
+            "start_time_only": self.start_time.strftime("%H:%M") if self.start_time else None,
             "schedule_id": self.schedule_id,
-            "end_time": self.end_time.isoformat(),
+            "end_time": self.end_time.isoformat() if self.end_time else None,
+            "end_time_only": self.end_time.strftime("%H:%M") if self.end_time else None,
             "clock_in": self.clock_in.isoformat() if self.clock_in else None,
             "clock_out": self.clock_out.isoformat() if self.clock_out else None
         }

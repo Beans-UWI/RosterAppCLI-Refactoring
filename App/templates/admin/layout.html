@@ -1,0 +1,193 @@
+{% extends "layout.html" %}
+
+{% block title %}Admin Dashboard{% endblock %}
+
+{% block nav_items %}
+{% endblock %}
+
+{% block head %}
+<script>
+    window.toggleAdminSidebar = function() {
+        console.log('toggleAdminSidebar called!');
+        const sidebar = document.querySelector('.admin-sidebar');
+        const overlay = document.getElementById('sidebar-overlay');
+        const toggleIcon = document.getElementById('toggle-icon');
+        const adminLayout = document.querySelector('.admin-layout');
+        
+        console.log('Elements found:', {
+            sidebar: !!sidebar,
+            overlay: !!overlay,
+            toggleIcon: !!toggleIcon,
+            adminLayout: !!adminLayout
+        });
+        
+        if (!sidebar) {
+            console.error('Sidebar not found!');
+            return;
+        }
+        
+        const isOpen = sidebar.classList.contains('open');
+        console.log('Sidebar is open:', isOpen);
+        
+        if (isOpen) {
+            // Close sidebar
+            console.log('Closing sidebar...');
+            sidebar.classList.remove('open');
+            if (overlay) overlay.classList.remove('active');
+            if (adminLayout) adminLayout.classList.remove('sidebar-open');
+            document.body.style.overflow = '';
+            if (toggleIcon) {
+                toggleIcon.classList.remove('fa-times');
+                toggleIcon.classList.add('fa-bars');
+            }
+        } else {
+            // Open sidebar
+            console.log('Opening sidebar...');
+            sidebar.classList.add('open');
+            if (overlay) overlay.classList.add('active');
+            if (adminLayout) adminLayout.classList.add('sidebar-open');
+            document.body.style.overflow = 'hidden';
+            if (toggleIcon) {
+                toggleIcon.classList.remove('fa-bars');
+                toggleIcon.classList.add('fa-times');
+            }
+        }
+        
+        console.log('Sidebar classes after toggle:', sidebar.className);
+    };
+    
+    window.closeAdminSidebar = function() {
+        const sidebar = document.querySelector('.admin-sidebar');
+        const overlay = document.getElementById('sidebar-overlay');
+        const toggleIcon = document.getElementById('toggle-icon');
+        const adminLayout = document.querySelector('.admin-layout');
+        
+        if (sidebar) sidebar.classList.remove('open');
+        if (overlay) overlay.classList.remove('active');
+        if (adminLayout) adminLayout.classList.remove('sidebar-open');
+        document.body.style.overflow = '';
+        if (toggleIcon) {
+            toggleIcon.classList.remove('fa-times');
+            toggleIcon.classList.add('fa-bars');
+        }
+    };
+</script>
+{{ super() }}
+{% endblock %}
+
+{% block content %}
+<div class="admin-layout">
+    <button class="sidebar-toggle" id="sidebar-toggle" aria-label="Toggle sidebar" onclick="toggleAdminSidebar()">
+        <i class="fas fa-bars" id="toggle-icon"></i>
+    </button>
+    
+    <div class="sidebar-overlay" id="sidebar-overlay"></div>
+    
+    <aside class="admin-sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-brand">
+                <i class="fas fa-calendar-alt"></i>
+                <span>Roster App</span>
+            </div>
+            <button class="sidebar-close" id="sidebar-close" onclick="closeAdminSidebar()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        
+        <nav class="sidebar-nav">
+            <a href="{{ url_for('admin_view.admin_schedule') }}" class="sidebar-link {% if shifts is defined %}active{% endif %}">
+                <i class="fas fa-calendar-week"></i>
+                <span>Schedule View</span>
+            </a>
+            <a href="{{ url_for('admin_view.admin_users') }}" class="sidebar-link {% if users is defined %}active{% endif %}">
+                <i class="fas fa-users"></i>
+                <span>User List</span>
+            </a>
+            <a href="{{ url_for('admin_view.admin_schedule_shift') }}" class="sidebar-link {% if staff_list is defined and schedules is defined %}active{% endif %}">
+                <i class="fas fa-calendar-plus"></i>
+                <span>Schedule Shift</span>
+            </a>
+            <a href="{{ url_for('admin_view.admin_create_schedule') }}" class="sidebar-link {% if staff_list is defined and schedules is not defined %}active{% endif %}">
+                <i class="fas fa-plus-circle"></i>
+                <span>Create Schedule</span>
+            </a>
+            <a href="{{ url_for('admin_view.admin_shift_report') }}" class="sidebar-link {% if report_data is defined %}active{% endif %}">
+                <i class="fas fa-chart-bar"></i>
+                <span>Shift Report</span>
+            </a>
+            <a href="{{ url_for('admin_view.admin_create_account') }}" class="sidebar-link {% if not shifts and not users and not staff_list and not report_data %}active{% endif %}">
+                <i class="fas fa-user-plus"></i>
+                <span>Create Account</span>
+            </a>
+        </nav>
+        
+        <div class="sidebar-footer">
+            <div class="sidebar-user">
+                <i class="fas fa-user-circle"></i>
+                <span>{{ current_user.username }}</span>
+            </div>
+            <a href="{{ url_for('auth_views.logout_action') }}" class="sidebar-link sidebar-logout">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>Logout</span>
+            </a>
+        </div>
+    </aside>
+    
+    <main class="admin-main">
+        {% block admin_content %}{% endblock %}
+    </main>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('DOM Content Loaded - Admin Layout');
+        
+        const toggleBtn = document.getElementById('sidebar-toggle');
+        
+        
+        if (toggleBtn) {
+            toggleBtn.addEventListener('click', function(e) {
+                console.log('Event listener triggered!');
+                e.preventDefault();
+                if (window.toggleAdminSidebar) {
+                    window.toggleAdminSidebar();
+                }
+            });
+        }
+        
+        const overlay = document.getElementById('sidebar-overlay');
+        
+        if (overlay) {
+            overlay.addEventListener('click', function() {
+                if (window.closeAdminSidebar) {
+                    window.closeAdminSidebar();
+                }
+            });
+        }
+        
+        const currentPath = window.location.pathname;
+        document.querySelectorAll('.sidebar-link').forEach(link => {
+            link.classList.remove('active');
+            if (link.getAttribute('href') === currentPath || 
+                (currentPath === '/admin' && link.getAttribute('href') === '/admin/schedule')) {
+                link.classList.add('active');
+            }
+        });
+        
+        if (window.innerWidth <= 768) {
+            document.querySelectorAll('.sidebar-link').forEach(link => {
+                link.addEventListener('click', function() {
+                    setTimeout(function() {
+                        if (window.closeAdminSidebar) {
+                            window.closeAdminSidebar();
+                        }
+                    }, 100);
+                });
+            });
+        }
+    });
+</script>
+{{ super() }}
+{% endblock %}

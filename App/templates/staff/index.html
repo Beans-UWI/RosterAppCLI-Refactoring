@@ -1,0 +1,377 @@
+{% extends "layout.html" %}
+
+{% block title %}Staff Dashboard{% endblock %}
+
+{% block nav_items %}
+    <a href="{{ url_for('staff_views.staff_schedule') }}" class="nav-link" data-view="schedule">
+        <i class="fas fa-calendar-week"></i> Schedule View
+    </a>
+    <a href="{{ url_for('staff_views.staff_clock_in') }}" class="nav-link" data-view="clock-in">
+        <i class="fas fa-clock"></i> Clock In
+    </a>
+    <a href="{{ url_for('staff_views.staff_clock_out') }}" class="nav-link" data-view="clock-out">
+        <i class="fas fa-sign-out-alt"></i> Clock Out
+    </a>
+{% endblock %}
+
+{% block content %}
+    {# Schedule View #}
+    <div id="schedule-view" class="view-section" {% if shifts is not defined %}style="display: none;"{% endif %}>
+    <div class="page-header">
+        <h1><i class="fas fa-calendar-week"></i> Schedule View</h1>
+        <p class="subtitle">View your upcoming shifts and schedule</p>
+    </div>
+
+    <div class="schedule-container">
+        <div class="schedule-table-wrapper">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Employee Name</th>
+                        <th>Date</th>
+                        <th>Time</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if shifts %}
+                        {% for shift in shifts %}
+                        <tr>
+                            <td>
+                                <div class="employee-cell">
+                                    <i class="fas fa-user-circle"></i>
+                                    <span>{{ shift.staff_name or 'N/A' }}</span>
+                                </div>
+                            </td>
+                            <td>{{ shift.start_date or 'N/A' }}</td>
+                            <td>
+                                {% if shift.start_time_only and shift.end_time_only %}
+                                    {{ shift.start_time_only }} - {{ shift.end_time_only }}
+                                {% else %}
+                                    N/A
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if shift.clock_in and shift.clock_out %}
+                                    <span class="badge badge-success">Completed</span>
+                                {% elif shift.clock_in %}
+                                    <span class="badge badge-warning">In Progress</span>
+                                {% else %}
+                                    <span class="badge badge-info">Scheduled</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="4" class="empty-state">
+                                <i class="fas fa-calendar-times"></i>
+                                <p>No shifts scheduled</p>
+                            </td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    </div>
+
+    {# Clock In View #}
+    <div id="clock-in-view" class="view-section" style="display: none;">
+    <div class="page-header">
+        <h1><i class="fas fa-clock"></i> Clock In</h1>
+        <p class="subtitle">Record your shift start time</p>
+    </div>
+
+    <div class="clock-container">
+        <div class="clock-card">
+            <div class="clock-icon">
+                <i class="fas fa-clock"></i>
+            </div>
+            
+            <div id="clock-in-status" class="clock-status">
+                <h2>Ready to Clock In</h2>
+                <p>Click the button below to record your shift start time</p>
+            </div>
+
+            <form id="clock-in-form" method="POST" action="{{ url_for('staff_views.clockIn') }}" class="clock-form">
+                <div class="form-group">
+                    <label for="clock-in-shiftId">
+                        <i class="fas fa-calendar-check"></i> Select Shift
+                    </label>
+                    <select name="shiftId" id="clock-in-shiftId" required>
+                        <option value="">Select a shift...</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-primary btn-large">
+                    <i class="fas fa-play-circle"></i> Clock In
+                </button>
+            </form>
+
+            <div id="clock-in-confirmation" class="clock-confirmation" style="display: none;">
+                <div class="confirmation-icon">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+                <h3>You have been clocked in at</h3>
+                <div class="confirmation-details">
+                    <div class="detail-item">
+                        <i class="fas fa-calendar"></i>
+                        <span>Date: <strong id="clock-in-date"></strong></span>
+                    </div>
+                    <div class="detail-item">
+                        <i class="fas fa-clock"></i>
+                        <span>Time: <strong id="clock-in-time"></strong></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="available-shifts">
+            <h3>Available Shifts</h3>
+            <div id="clock-in-shifts-list" class="shifts-list">
+                <p class="empty-state">Loading shifts...</p>
+            </div>
+        </div>
+    </div>
+    </div>
+
+    {# Clock Out View #}
+    <div id="clock-out-view" class="view-section" style="display: none;">
+    <div class="page-header">
+        <h1><i class="fas fa-sign-out-alt"></i> Clock Out</h1>
+        <p class="subtitle">Record your shift end time</p>
+    </div>
+
+    <div class="clock-container">
+        <div class="clock-card">
+            <div class="clock-icon">
+                <i class="fas fa-sign-out-alt"></i>
+            </div>
+            
+            <div id="clock-out-status" class="clock-status">
+                <h2>Ready to Clock Out</h2>
+                <p>Click the button below to record your shift end time</p>
+            </div>
+
+            <form id="clock-out-form" method="POST" action="{{ url_for('staff_views.clock_out') }}" class="clock-form">
+                <div class="form-group">
+                    <label for="clock-out-shiftId">
+                        <i class="fas fa-calendar-check"></i> Select Shift
+                    </label>
+                    <select name="shiftId" id="clock-out-shiftId" required>
+                        <option value="">Select a shift...</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-danger btn-large">
+                    <i class="fas fa-stop-circle"></i> Clock Out
+                </button>
+            </form>
+
+            <div id="clock-out-confirmation" class="clock-confirmation" style="display: none;">
+                <div class="confirmation-icon">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+                <h3>You have been clocked out at</h3>
+                <div class="confirmation-details">
+                    <div class="detail-item">
+                        <i class="fas fa-calendar"></i>
+                        <span>Date: <strong id="clock-out-date"></strong></span>
+                    </div>
+                    <div class="detail-item">
+                        <i class="fas fa-clock"></i>
+                        <span>Time: <strong id="clock-out-time"></strong></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="active-shifts">
+            <h3>Active Shifts</h3>
+            <div id="clock-out-shifts-list" class="shifts-list">
+                <p class="empty-state">Loading shifts...</p>
+            </div>
+        </div>
+    </div>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Determine which view to show based on current URL
+    document.addEventListener('DOMContentLoaded', function() {
+        const currentPath = window.location.pathname;
+        const scheduleView = document.getElementById('schedule-view');
+        const clockInView = document.getElementById('clock-in-view');
+        const clockOutView = document.getElementById('clock-out-view');
+        
+        // Hide all views first
+        if (scheduleView) scheduleView.style.display = 'none';
+        if (clockInView) clockInView.style.display = 'none';
+        if (clockOutView) clockOutView.style.display = 'none';
+        
+        // Show appropriate view and set active nav link
+        if (currentPath === '/staff' || currentPath === '/staff/schedule') {
+            if (scheduleView) scheduleView.style.display = 'block';
+            document.querySelector('[data-view="schedule"]')?.classList.add('active');
+        } else if (currentPath === '/staff/clock-in') {
+            if (clockInView) clockInView.style.display = 'block';
+            document.querySelector('[data-view="clock-in"]')?.classList.add('active');
+            loadClockInShifts();
+        } else if (currentPath === '/staff/clock-out') {
+            if (clockOutView) clockOutView.style.display = 'block';
+            document.querySelector('[data-view="clock-out"]')?.classList.add('active');
+            loadClockOutShifts();
+        } else {
+            // Default to schedule if shifts data exists
+            {% if shifts is defined %}
+            if (scheduleView) scheduleView.style.display = 'block';
+            document.querySelector('[data-view="schedule"]')?.classList.add('active');
+            {% endif %}
+        }
+    });
+
+    // Clock In functionality
+    function loadClockInShifts() {
+        fetch('{{ url_for("staff_views.view_roster") }}')
+            .then(response => response.json())
+            .then(data => {
+                const shiftsList = document.getElementById('clock-in-shifts-list');
+                const shiftSelect = document.getElementById('clock-in-shiftId');
+                
+                if (!shiftSelect || !shiftsList) return;
+                
+                shiftSelect.innerHTML = '<option value="">Select a shift...</option>';
+                shiftsList.innerHTML = '';
+                
+                if (data && data.length > 0) {
+                    const availableShifts = data.filter(shift => !shift.clock_in);
+                    if (availableShifts.length > 0) {
+                        availableShifts.forEach(shift => {
+                            const option = document.createElement('option');
+                            option.value = shift.id;
+                            const dateStr = shift.start_date || 'N/A';
+                            const timeStr = shift.start_time_only && shift.end_time_only 
+                                ? `${shift.start_time_only} - ${shift.end_time_only}` 
+                                : 'N/A';
+                            option.textContent = `${dateStr} ${timeStr}`;
+                            shiftSelect.appendChild(option);
+                        });
+                        shiftsList.innerHTML = `<p>${availableShifts.length} shift(s) available</p>`;
+                    } else {
+                        shiftsList.innerHTML = '<p class="empty-state">No available shifts</p>';
+                    }
+                } else {
+                    shiftsList.innerHTML = '<p class="empty-state">No shifts found</p>';
+                }
+            });
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.getElementById('clock-in-form');
+        if (form) {
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                const shiftId = document.getElementById('clock-in-shiftId').value;
+                
+                if (!shiftId) {
+                    alert('Please select a shift');
+                    return;
+                }
+                
+                fetch('{{ url_for("staff_views.clockIn") }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ shiftId: parseInt(shiftId) })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        alert('Error: ' + data.error);
+                    } else {
+                        const now = new Date();
+                        document.getElementById('clock-in-date').textContent = now.toLocaleDateString();
+                        document.getElementById('clock-in-time').textContent = now.toLocaleTimeString();
+                        document.getElementById('clock-in-status').style.display = 'none';
+                        document.getElementById('clock-in-form').style.display = 'none';
+                        document.getElementById('clock-in-confirmation').style.display = 'block';
+                    }
+                });
+            });
+        }
+    });
+
+    // Clock Out functionality
+    function loadClockOutShifts() {
+        fetch('{{ url_for("staff_views.view_roster") }}')
+            .then(response => response.json())
+            .then(data => {
+                const shiftsList = document.getElementById('clock-out-shifts-list');
+                const shiftSelect = document.getElementById('clock-out-shiftId');
+                
+                if (!shiftSelect || !shiftsList) return;
+                
+                shiftSelect.innerHTML = '<option value="">Select a shift...</option>';
+                shiftsList.innerHTML = '';
+                
+                if (data && data.length > 0) {
+                    const activeShifts = data.filter(shift => shift.clock_in && !shift.clock_out);
+                    if (activeShifts.length > 0) {
+                        activeShifts.forEach(shift => {
+                            const option = document.createElement('option');
+                            option.value = shift.id;
+                            const dateStr = shift.start_date || 'N/A';
+                            const timeStr = shift.start_time_only && shift.end_time_only 
+                                ? `${shift.start_time_only} - ${shift.end_time_only}` 
+                                : 'N/A';
+                            option.textContent = `${dateStr} ${timeStr}`;
+                            shiftSelect.appendChild(option);
+                        });
+                        shiftsList.innerHTML = `<p>${activeShifts.length} active shift(s)</p>`;
+                    } else {
+                        shiftsList.innerHTML = '<p class="empty-state">No active shifts</p>';
+                    }
+                } else {
+                    shiftsList.innerHTML = '<p class="empty-state">No shifts found</p>';
+                }
+            });
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.getElementById('clock-out-form');
+        if (form) {
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                const shiftId = document.getElementById('clock-out-shiftId').value;
+                
+                if (!shiftId) {
+                    alert('Please select a shift');
+                    return;
+                }
+                
+                fetch('{{ url_for("staff_views.clock_out") }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ shiftId: parseInt(shiftId) })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        alert('Error: ' + data.error);
+                    } else {
+                        const now = new Date();
+                        document.getElementById('clock-out-date').textContent = now.toLocaleDateString();
+                        document.getElementById('clock-out-time').textContent = now.toLocaleTimeString();
+                        document.getElementById('clock-out-status').style.display = 'none';
+                        document.getElementById('clock-out-form').style.display = 'none';
+                        document.getElementById('clock-out-confirmation').style.display = 'block';
+                    }
+                });
+            });
+        }
+    });
+</script>
+{% endblock %}
