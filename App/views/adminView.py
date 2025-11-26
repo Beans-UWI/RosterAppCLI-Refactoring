@@ -153,11 +153,9 @@ def create_account_action():
 @admin_view.route('/admin/create-schedule', methods=['POST'])
 @jwt_required()
 def createSchedule():
-    is_json = request.is_json
-
     try:
         admin_id = get_jwt_identity()
-        data = request.get_json() if is_json else request.form
+        data = request.form
 
         schedule_name = data.get("scheduleName")
         strategy = data.get("strategy")
@@ -165,58 +163,34 @@ def createSchedule():
         week_start_str = data.get("weekStart")
 
         if not schedule_name or not strategy or not shift_length_hours or not week_start_str:
-            if is_json:
-                return jsonify({"error": "All fields are required."}), 400
             flash("All fields are required.", 'error')
             return redirect(url_for('admin_view.admin_create_schedule'))
 
         try:
             shift_length_hours = int(shift_length_hours)
         except (TypeError, ValueError):
-            if is_json:
-                return jsonify({"error": "shiftLengthHours must be a number."}), 400
             flash("shiftLengthHours must be a number.", 'error')
             return redirect(url_for('admin_view.admin_create_schedule'))
 
-        # Collect staff IDs from either JSON or form submissions
-        if is_json:
-            raw_staff_list = data.get("staffList", [])
-            if raw_staff_list and isinstance(raw_staff_list[0], dict):
-                staff_ids = [
-                    member.get("id") for member in raw_staff_list if member.get("id") is not None
-                ]
-            else:
-                staff_ids = raw_staff_list
-        else:
-            staff_ids = data.getlist("staffList")
-
+        staff_ids = data.getlist("staffList")
         if not staff_ids:
-            if is_json:
-                return jsonify({"error": "staffList cannot be empty."}), 400
-            flash("staffList cannot be empty.", 'error')
+            flash("At least one staff member must be selected.", 'error')
             return redirect(url_for('admin_view.admin_create_schedule'))
 
         try:
             staff_ids = [int(staff_id) for staff_id in staff_ids]
         except (TypeError, ValueError):
-            if is_json:
-                return jsonify({"error": "Staff IDs must be integers."}), 400
-            flash("Staff IDs must be integers.", 'error')
+            flash("Invalid staff selection.", 'error')
             return redirect(url_for('admin_view.admin_create_schedule'))
 
         staff_list = [db.session.get(Staff, staff_id) for staff_id in staff_ids]
         if None in staff_list:
-            if is_json:
-                return jsonify({"error": "One or more staff IDs are invalid."}), 400
             flash("One or more staff IDs are invalid.", 'error')
             return redirect(url_for('admin_view.admin_create_schedule'))
 
-        # Convert weekStart string to datetime
         try:
             week_start = datetime.fromisoformat(week_start_str)
         except ValueError:
-            if is_json:
-                return jsonify({"error": "weekStart must be a valid ISO date (YYYY-MM-DD)."}), 400
             flash("weekStart must be a valid ISO date (YYYY-MM-DD).", 'error')
             return redirect(url_for('admin_view.admin_create_schedule'))
 
@@ -224,19 +198,12 @@ def createSchedule():
             admin_id, schedule_name, strategy, staff_list, shift_length_hours, week_start
         )
 
-        if is_json:
-            return jsonify(schedule.get_json()), 200
-
         flash('Schedule created successfully!', 'success')
         return redirect(url_for('admin_view.admin_create_schedule'))
     except (PermissionError, ValueError) as e:
-        if is_json:
-            return jsonify({"error": str(e)}), 403
         flash(str(e), 'error')
         return redirect(url_for('admin_view.admin_create_schedule'))
     except SQLAlchemyError:
-        if is_json:
-            return jsonify({"error": "Database error"}), 500
         flash('Database error', 'error')
         return redirect(url_for('admin_view.admin_create_schedule'))
     
@@ -247,33 +214,49 @@ def createSchedule_api():
     try:
         admin_id = get_jwt_identity()
         data = request.get_json()
-        schedule_name = data.get("scheduleName") # gets the scheduleName from the request body
-        strategy = data.get("strategy") # gets the strategy from the request body
-        shift_length_hours = data.get("shiftLengthHours") # gets the shiftLengthHours from the request body
-        week_start_str = data.get("weekStart") # gets the weekStart from the request body
+        
+        if not data:
+            return jsonify({"error": "Request body must be JSON"}), 400
 
-        # Extract staff IDs from the request
+        schedule_name = data.get("scheduleName")
+        strategy = data.get("strategy")
+        shift_length_hours = data.get("shiftLengthHours")
+        week_start_str = data.get("weekStart")
+
+        if not schedule_name or not strategy or not shift_length_hours or not week_start_str:
+            return jsonify({"error": "All fields are required"}), 400
+
+        try:
+            shift_length_hours = int(shift_length_hours)
+        except (TypeError, ValueError):
+            return jsonify({"error": "shiftLengthHours must be a number"}), 400
+
         raw_staff_list = data.get("staffList", [])
-        staff_ids = [m.get("id") for m in raw_staff_list if m.get("id") is not None]
+        if isinstance(raw_staff_list, list) and len(raw_staff_list) > 0 and isinstance(raw_staff_list[0], dict):
+            staff_ids = [m.get("id") for m in raw_staff_list if m.get("id") is not None]
+        else:
+            staff_ids = raw_staff_list if isinstance(raw_staff_list, list) else []
         
         if not staff_ids:
             return jsonify({"error": "staffList cannot be empty"}), 400
 
-        # Convert staff IDs to Staff objects (only selected staff, not all staff)
+        try:
+            staff_ids = [int(staff_id) for staff_id in staff_ids]
+        except (TypeError, ValueError):
+            return jsonify({"error": "Staff IDs must be integers"}), 400
+
         staff_list = [db.session.get(Staff, staff_id) for staff_id in staff_ids]
-        # Validate that all staff IDs are valid
         if None in staff_list:
             return jsonify({"error": "One or more staff IDs are invalid"}), 400
 
-        # Convert weekStart string to datetime
         try:
             week_start = datetime.fromisoformat(week_start_str)
         except ValueError:
-            return jsonify({"error": "weekStart must be a valid ISO datetime string"}), 400
+            return jsonify({"error": "weekStart must be a valid ISO date (YYYY-MM-DD)"}), 400
 
-        schedule = admin.create_schedule(admin_id, schedule_name, strategy, staff_list, shift_length_hours, week_start)  # Call controller method
+        schedule = admin.create_schedule(admin_id, schedule_name, strategy, staff_list, shift_length_hours, week_start)
         
-        return jsonify(schedule.get_json()), 200 # Return the created schedule as JSON
+        return jsonify(schedule.get_json()), 200
     except (PermissionError, ValueError) as e:
         return jsonify({"error": str(e)}), 403
     except SQLAlchemyError:
@@ -284,50 +267,33 @@ def createSchedule_api():
 @admin_view.route('/admin/create-shift', methods=['POST'])
 @jwt_required()
 def createShift():
-    is_json = request.is_json
-
     try:
         admin_id = get_jwt_identity()
-        data = request.get_json() if is_json else request.form
+        data = request.form
 
         staff_id = data.get("staffId")
         schedule_id = data.get("scheduleId")
+        date_str = data.get("date")
+        start_time_part = data.get("startTime")
+        end_time_part = data.get("endTime")
 
         if not staff_id or not schedule_id:
-            if is_json:
-                return jsonify({"error": "staffId and scheduleId are required."}), 400
-            flash("staffId and scheduleId are required.", 'error')
+            flash("Staff and schedule are required.", 'error')
+            return redirect(url_for('admin_view.admin_schedule_shift'))
+
+        if not date_str or not start_time_part or not end_time_part:
+            flash("Date, start time, and end time are required.", 'error')
             return redirect(url_for('admin_view.admin_schedule_shift'))
 
         try:
             staff_id = int(staff_id)
             schedule_id = int(schedule_id)
         except (TypeError, ValueError):
-            if is_json:
-                return jsonify({"error": "IDs must be integers."}), 400
-            flash("IDs must be integers.", 'error')
+            flash("Invalid staff or schedule selection.", 'error')
             return redirect(url_for('admin_view.admin_schedule_shift'))
 
-        if is_json:
-            start_time_str = data.get("startTime")
-            end_time_str = data.get("endTime")
-        else:
-            date_str = data.get("date")
-            start_time_part = data.get("startTime")
-            end_time_part = data.get("endTime")
-            if not date_str or not start_time_part or not end_time_part:
-                if is_json:
-                    return jsonify({"error": "Date, start time, and end time are required."}), 400
-                flash("Date, start time, and end time are required.", 'error')
-                return redirect(url_for('admin_view.admin_schedule_shift'))
-            start_time_str = f"{date_str} {start_time_part}:00"
-            end_time_str = f"{date_str} {end_time_part}:00"
-
-        if not start_time_str or not end_time_str:
-            if is_json:
-                return jsonify({"error": "Start and end times are required."}), 400
-            flash("Start and end times are required.", 'error')
-            return redirect(url_for('admin_view.admin_schedule_shift'))
+        start_time_str = f"{date_str} {start_time_part}:00"
+        end_time_str = f"{date_str} {end_time_part}:00"
 
         try:
             start_time = datetime.fromisoformat(start_time_str)
@@ -337,28 +303,63 @@ def createShift():
                 start_time = datetime.strptime(start_time_str, "%Y-%m-%d %H:%M:%S")
                 end_time = datetime.strptime(end_time_str, "%Y-%m-%d %H:%M:%S")
             except ValueError:
-                if is_json:
-                    return jsonify({"error": "Invalid date format. Use ISO or YYYY-MM-DD HH:MM:SS."}), 400
-                flash("Invalid date format. Use ISO or YYYY-MM-DD HH:MM:SS.", 'error')
+                flash("Invalid date format. Use YYYY-MM-DD for date and HH:MM for times.", 'error')
                 return redirect(url_for('admin_view.admin_schedule_shift'))
 
         shift = admin.schedule_shift(admin_id, staff_id, schedule_id, start_time, end_time)
 
-        if is_json:
-            return jsonify(shift.get_json()), 200
-
         flash('Shift created successfully!', 'success')
         return redirect(url_for('admin_view.admin_schedule_shift'))
     except (PermissionError, ValueError) as e:
-        if is_json:
-            return jsonify({"error": str(e)}), 403
         flash(str(e), 'error')
         return redirect(url_for('admin_view.admin_schedule_shift'))
     except SQLAlchemyError:
-        if is_json:
-            return jsonify({"error": "Database error"}), 500
         flash('Database error', 'error')
         return redirect(url_for('admin_view.admin_schedule_shift'))
+
+@admin_view.route('/api/admin/create-shift', methods=['POST'])
+@jwt_required()
+def createShift_api():
+    try:
+        admin_id = get_jwt_identity()
+        data = request.get_json()
+        
+        if not data:
+            return jsonify({"error": "Request body must be JSON"}), 400
+
+        staff_id = data.get("staffId")
+        schedule_id = data.get("scheduleId")
+        start_time_str = data.get("startTime")
+        end_time_str = data.get("endTime")
+
+        if not staff_id or not schedule_id or not start_time_str or not end_time_str:
+            return jsonify({"error": "staffId, scheduleId, startTime, and endTime are required"}), 400
+
+        try:
+            staff_id = int(staff_id)
+            schedule_id = int(schedule_id)
+        except (TypeError, ValueError):
+            return jsonify({"error": "IDs must be integers"}), 400
+
+        try:
+            start_time = datetime.fromisoformat(start_time_str)
+            end_time = datetime.fromisoformat(end_time_str)
+        except ValueError:
+            try:
+                start_time = datetime.strptime(start_time_str, "%Y-%m-%d %H:%M:%S")
+                end_time = datetime.strptime(end_time_str, "%Y-%m-%d %H:%M:%S")
+            except ValueError:
+                return jsonify({"error": "Invalid date format. Use ISO or YYYY-MM-DD HH:MM:SS"}), 400
+
+        shift = admin.schedule_shift(admin_id, staff_id, schedule_id, start_time, end_time)
+
+        return jsonify(shift.get_json()), 200
+    except (PermissionError, ValueError) as e:
+        return jsonify({"error": str(e)}), 403
+    except SQLAlchemyError:
+        return jsonify({"error": "Database error"}), 500
+    except Exception:
+        return jsonify({"error": "Unexpected error"}), 500
 
 @admin_view.route('/api/admin/shift-report', methods=['GET'])
 @jwt_required()
