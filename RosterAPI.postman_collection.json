@@ -1,453 +1,1040 @@
 {
 	"info": {
-		"_postman_id": "982ba4f2-1a0e-43bc-803b-5217c9831e62",
-		"name": "RosterAPI",
+		"_postman_id": "537e32d8-09b4-4a12-89d9-545ed42ac5c0",
+		"name": "Rostering App API",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-		"_exporter_id": "20616724",
-		"_collection_link": "https://manutd-3640.postman.co/workspace/ManUtd-Workspace~2fb3167d-d7e4-4b28-a65f-08d0dd95df9b/collection/20616724-982ba4f2-1a0e-43bc-803b-5217c9831e62?action=share&source=collection_link&creator=20616724"
+		"_exporter_id": "42003097",
+		"_collection_link": "https://darrenclarke19-9210124.postman.co/workspace/f51b4350-d887-4235-a7d5-f96e6a5dfd22/collection/42003097-537e32d8-09b4-4a12-89d9-545ed42ac5c0?action=share&source=collection_link&creator=42003097"
 	},
 	"item": [
 		{
-			"name": "Admin Operations",
-			"item": [
+			"name": "Initialize",
+			"event": [
 				{
-					"name": "Login",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"// js code to save the access_token for user authentication\r",
-									"let jsonData = JSON.parse(responseBody);\r",
-									"pm.environment.set(\"access_token\",jsonData.access_token) // creates access_token variable in postman and sets it to the value of the access_token in the response body."
-								],
-								"type": "text/javascript",
-								"packages": {},
-								"requests": {}
-							}
-						}
-					],
-					"request": {
-						"method": "POST",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\r\n    \"username\": \"bob\",\r\n    \"password\": \"bobpass\"\r\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "{{host}}/api/login",
-							"host": [
-								"{{host}}"
-							],
-							"path": [
-								"api",
-								"login"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Admin: Create_Schedule",
-					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "{{access_token}}",
-									"type": "string"
-								}
-							]
-						},
-						"method": "POST",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\r\n \"scheduleName\": \"Morning Shift\"\r\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "{{host}}/createSchedule",
-							"host": [
-								"{{host}}"
-							],
-							"path": [
-								"createSchedule"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Admin: Create_Shift",
-					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "{{access_token}}",
-									"type": "string"
-								}
-							]
-						},
-						"method": "POST",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\r\n    \"scheduleID\": 1,\r\n    \"staffID\": 3,\r\n    \"start_time\": \"2025-10-24T09:00:00\",\r\n    \"end_time\": \"2025-10-24T17:00:00\"\r\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "{{host}}/createShift",
-							"host": [
-								"{{host}}"
-							],
-							"path": [
-								"createShift"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Admin: Shift_Report",
-					"protocolProfileBehavior": {
-						"disableBodyPruning": true
-					},
-					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "{{access_token}}",
-									"type": "string"
-								}
-							]
-						},
-						"method": "GET",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\r\n  \"shiftID\": 1\r\n}"
-						},
-						"url": {
-							"raw": "{{host}}/shiftReport",
-							"host": [
-								"{{host}}"
-							],
-							"path": [
-								"shiftReport"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Logout",
-					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "{{access_token}}",
-									"type": "string"
-								}
-							]
-						},
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{host}}/api/logout",
-							"host": [
-								"{{host}}"
-							],
-							"path": [
-								"api",
-								"logout"
-							]
-						}
-					},
-					"response": []
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Check if the response message is correct\", function () {\r",
+							"    pm.expect(pm.response.json().message).to.eql(\"db initialized!\");\r",
+							"    }); "
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
 				}
-			]
+			],
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"username\": \"tim\",\r\n    \"password\": \"timpass\"\r\n}"
+				},
+				"url": {
+					"raw": "{{base_url}}/init",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"init"
+					]
+				}
+			},
+			"response": []
 		},
 		{
-			"name": "Staff Operations",
-			"item": [
+			"name": "Login (Admin)",
+			"event": [
 				{
-					"name": "Login",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"// js code to save the access_token for user authentication\r",
-									"let jsonData = JSON.parse(responseBody);\r",
-									"pm.environment.set(\"access_token\",jsonData.access_token) // creates access_token variable in postman and sets it to the value of the access_token in the response body."
-								],
-								"type": "text/javascript",
-								"packages": {},
-								"requests": {}
-							}
-						},
-						{
-							"listen": "prerequest",
-							"script": {
-								"exec": [
-									""
-								],
-								"type": "text/javascript",
-								"packages": {},
-								"requests": {}
-							}
-						}
-					],
-					"request": {
-						"auth": {
-							"type": "noauth"
-						},
-						"method": "POST",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\r\n    \"username\": \"alice\",\r\n    \"password\": \"alicepass\"\r\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "{{host}}/api/login",
-							"host": [
-								"{{host}}"
-							],
-							"path": [
-								"api",
-								"login"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Staff: Show_Roster",
-					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "{{access_token}}",
-									"type": "string"
-								}
-							]
-						},
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{host}}/staff/roster",
-							"host": [
-								"{{host}}"
-							],
-							"path": [
-								"staff",
-								"roster"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "getShift",
-					"protocolProfileBehavior": {
-						"disableBodyPruning": true
-					},
-					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "{{access_token}}",
-									"type": "string"
-								}
-							]
-						},
-						"method": "GET",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\r\n    \"shiftID\": 1\r\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "{{host}}/staff/shift",
-							"host": [
-								"{{host}}"
-							],
-							"path": [
-								"staff",
-								"shift"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Staff: Clock_In",
-					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "{{access_token}}",
-									"type": "string"
-								}
-							]
-						},
-						"method": "POST",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\r\n    \"shiftID\": 1\r\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "{{host}}/staff/clock_in",
-							"host": [
-								"{{host}}"
-							],
-							"path": [
-								"staff",
-								"clock_in"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Staff: Clock_Out",
-					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "{{access_token}}",
-									"type": "string"
-								}
-							]
-						},
-						"method": "POST",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\r\n  \"shiftID\": 1\r\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "{{host}}/staff/clock_out",
-							"host": [
-								"{{host}}"
-							],
-							"path": [
-								"staff",
-								"clock_out"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Logout",
-					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "{{access_token}}",
-									"type": "string"
-								}
-							]
-						},
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{host}}/api/logout",
-							"host": [
-								"{{host}}"
-							],
-							"path": [
-								"api",
-								"logout"
-							]
-						}
-					},
-					"response": []
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Admin login returns access token\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"    pm.response.to.be.json;\r",
+							"\r",
+							"    const jsonData = pm.response.json();\r",
+							"    pm.expect(jsonData).to.have.property('access_token');\r",
+							"    pm.expect(jsonData['access_token']).to.be.a('string');\r",
+							"\r",
+							"    const token = jsonData['access_token'];\r",
+							"    pm.environment.set('admin_token', token);   // <-- this is the key line\r",
+							"\r",
+							"    // Optional: decode to get ID\r",
+							"    const payload = JSON.parse(atob(token.split('.')[1]));\r",
+							"    const user_id = payload.sub;\r",
+							"    pm.environment.set('admin_id', user_id);\r",
+							"\r",
+							"    console.log(`Logged in ADMIN with ID: ${user_id}`);\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
 				}
-			]
-		}
-	],
-	"event": [
-		{
-			"listen": "prerequest",
-			"script": {
-				"type": "text/javascript",
-				"packages": {},
-				"requests": {},
-				"exec": [
-					""
-				]
-			}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"username\": \"bob\",\r\n    \"password\": \"bobpass\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{base_url}}/api/login",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"login"
+					]
+				}
+			},
+			"response": []
 		},
 		{
-			"listen": "test",
-			"script": {
-				"type": "text/javascript",
-				"packages": {},
-				"requests": {},
-				"exec": [
-					""
-				]
-			}
-		}
-	],
-	"variable": [
+			"name": "Login (Staff)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Staff login returns access token\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"    pm.response.to.be.json;\r",
+							"\r",
+							"    const jsonData = pm.response.json();\r",
+							"    pm.expect(jsonData).to.have.property('access_token');\r",
+							"    pm.expect(jsonData['access_token']).to.be.a('string');\r",
+							"\r",
+							"    const token = jsonData['access_token'];\r",
+							"    pm.environment.set('staff_token', token);   // <-- staff token\r",
+							"\r",
+							"    const payload = JSON.parse(atob(token.split('.')[1]));\r",
+							"    const user_id = payload.sub;\r",
+							"    pm.environment.set('staff_id', user_id);\r",
+							"\r",
+							"    console.log(`Logged in STAFF with ID: ${user_id}`);\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"username\": \"jane\",\r\n    \"password\": \"janepass\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{base_url}}/api/login",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"login"
+					]
+				}
+			},
+			"response": []
+		},
 		{
-			"key": "host",
-			"value": ""
+			"name": "Login (User)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Login returns access token\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"    pm.response.to.be.json;\r",
+							"    \r",
+							"    const jsonData = pm.response.json();\r",
+							"    pm.expect(jsonData['access_token']).to.exist;\r",
+							"    pm.expect(jsonData['access_token']).to.be.a('string');\r",
+							"\r",
+							"    const token = jsonData['access_token'];\r",
+							"    \r",
+							"    // Keep a generic token if you still want it\r",
+							"    pm.environment.set('access_token', token);\r",
+							"\r",
+							"    // Decode JWT payload\r",
+							"    const payload = JSON.parse(atob(token.split('.')[1]));\r",
+							"    const user_id = payload.sub;\r",
+							"    const role = payload.role;\r",
+							"    const username = payload.username;\r",
+							"\r",
+							"    // Store IDs and role-specific tokens\r",
+							"    if (role === 'admin') {\r",
+							"        pm.environment.set('admin_id', user_id);\r",
+							"        pm.environment.set('admin_token', token);\r",
+							"    } else if (role === 'staff') {\r",
+							"        pm.environment.set('staff_id', user_id);\r",
+							"        pm.environment.set('staff_token', token);\r",
+							"    }\r",
+							"\r",
+							"    console.log(`Logged in as ${username || 'unknown'} (${role}) with ID: ${user_id}`);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Login response format is correct\", function () {\r",
+							"    const jsonData = pm.response.json();\r",
+							"    pm.expect(jsonData).to.have.property('access_token');\r",
+							"    pm.expect(jsonData['access_token']).to.be.a('string');\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"username\": \"tim\",\r\n    \"password\": \"timpass\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{base_url}}/api/login",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"login"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Identify",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Identify current user successfully\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"    pm.response.to.be.json;\r",
+							"\r",
+							"    const json = pm.response.json();\r",
+							"    pm.expect(json).to.have.property(\"message\");\r",
+							"\r",
+							"    const msg = json.message;\r",
+							"    pm.expect(msg).to.include(\"username:\");\r",
+							"    pm.expect(msg).to.include(\"id :\");\r",
+							"\r",
+							"    console.log(\"Identify response:\", msg);\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/api/identify",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"identify"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Logout",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Check if the response message is correct\", function () {\r",
+							"    pm.expect(pm.response.json().message).to.eql(\"Logged Out!\");\r",
+							"    }); "
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/api/logout",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"logout"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Create User",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"User created successfully\", function () {\r",
+							"    // Status should be 201\r",
+							"    pm.response.to.have.status(201);\r",
+							"    pm.response.to.be.json;\r",
+							"\r",
+							"    const json = pm.response.json();\r",
+							"\r",
+							"    // Response must have \"message\"\r",
+							"    pm.expect(json).to.have.property(\"message\");\r",
+							"    \r",
+							"    const msg = json.message;\r",
+							"\r",
+							"    // Check message content\r",
+							"    pm.expect(msg).to.include(\"user\");\r",
+							"    pm.expect(msg).to.include(\"created\");\r",
+							"    \r",
+							"\r",
+							"    // Extract user ID from message using regex\r",
+							"    const idMatch = msg.match(/id (\\d+)/);\r",
+							"    pm.expect(idMatch, \"ID should appear in the message\").to.not.be.null;\r",
+							"\r",
+							"    const userId = Number(idMatch[1]);\r",
+							"    pm.environment.set(\"newly_created_user_id\", userId);\r",
+							"\r",
+							"    console.log(\"Created user ID:\", userId);\r",
+							"});\r",
+							"\r",
+							"// Extra format test\r",
+							"pm.test(\"Response message is a string\", function () {\r",
+							"    const json = pm.response.json();\r",
+							"    pm.expect(json.message).to.be.a(\"string\");\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"username\": \"pam\",\r\n    \"password\": \"pampass\",\r\n    \"role\": \"admin\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{base_url}}/api/users",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"users"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Users",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Get users returns 200 and JSON\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"    pm.response.to.be.json;\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Response is an array\", function () {\r",
+							"    const json = pm.response.json();\r",
+							"    pm.expect(json).to.be.an(\"array\");\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Each user has id, username, and role\", function () {\r",
+							"    const json = pm.response.json();\r",
+							"\r",
+							"    if (json.length > 0) {\r",
+							"        json.forEach(user => {\r",
+							"            pm.expect(user).to.have.property(\"id\");\r",
+							"            pm.expect(user).to.have.property(\"username\");\r",
+							"            pm.expect(user).to.have.property(\"role\");\r",
+							"        });\r",
+							"    } else {\r",
+							"        console.log(\"No users returned – skipping field validation.\");\r",
+							"    }\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/api/users",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"users"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Create Schedule (Admin)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Schedule created successfully (200 + JSON)\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"    pm.response.to.be.json;\r",
+							"\r",
+							"    const json = pm.response.json();\r",
+							"\r",
+							"    pm.expect(json).to.have.property(\"id\");\r",
+							"    pm.expect(json).to.have.property(\"name\");\r",
+							"    pm.expect(json).to.have.property(\"start_date\");\r",
+							"    pm.expect(json).to.have.property(\"shift_count\");\r",
+							"    pm.expect(json).to.have.property(\"shifts\");\r",
+							"\r",
+							"    // Basic sanity checks\r",
+							"    pm.expect(json.name).to.eql(\"November Week 1\");\r",
+							"    pm.expect(json.shifts).to.be.an(\"array\");\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Shifts were generated correctly\", function () {\r",
+							"    const json = pm.response.json();\r",
+							"    const shifts = json.shifts;\r",
+							"\r",
+							"    // Ensure at least one shift was generated\r",
+							"    pm.expect(shifts.length, \"Schedule should auto-generate shifts\").to.be.above(0);\r",
+							"\r",
+							"    // Validate shift_count matches actual shift array length\r",
+							"    pm.expect(json.shift_count).to.eql(shifts.length);\r",
+							"\r",
+							"    // Validate each shift structure\r",
+							"    shifts.forEach(shift => {\r",
+							"        pm.expect(shift).to.have.property(\"id\");\r",
+							"        pm.expect(shift).to.have.property(\"schedule_id\");\r",
+							"        pm.expect(shift).to.have.property(\"staff_id\");\r",
+							"        pm.expect(shift).to.have.property(\"start_time\");\r",
+							"        pm.expect(shift).to.have.property(\"end_time\");\r",
+							"        pm.expect(shift).to.have.property(\"clock_in\");\r",
+							"        pm.expect(shift).to.have.property(\"clock_out\");\r",
+							"\r",
+							"        // Check schedule consistency\r",
+							"        pm.expect(shift.schedule_id).to.eql(json.id);\r",
+							"    });\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Store schedule_id and generated shift_ids\", function () {\r",
+							"    const json = pm.response.json();\r",
+							"\r",
+							"    // Store schedule id\r",
+							"    pm.environment.set(\"schedule_id\", json.id);\r",
+							"    console.log(\"Stored schedule_id:\", json.id);\r",
+							"\r",
+							"    // Store all shift IDs (comma-separated or array)\r",
+							"    const shiftIds = json.shifts.map(s => s.id);\r",
+							"    pm.environment.set(\"schedule_shift_ids\", JSON.stringify(shiftIds));\r",
+							"    console.log(\"Stored shift_ids:\", shiftIds);\r",
+							"\r",
+							"    // Optionally store the first shift_id for simple tests\r",
+							"    pm.environment.set(\"shift_id\", shiftIds[0]);\r",
+							"    console.log(\"Stored first shift_id:\", shiftIds[0]);\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{admin_token}}",
+						"type": "text"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"scheduleName\": \"November Week 1\",\r\n    \"strategy\": \"evenDistribution\",\r\n    \"staffList\": [\r\n        { \"id\": 1, \"username\": \"Jane\" },\r\n        { \"id\": 2, \"username\": \"Alice\" }\r\n    ],\r\n    \"shiftLengthHours\": 12,\r\n    \"weekStart\": \"2025-11-24T00:00:00\"\r\n}\r\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{base_url}}/api/admin/create-schedule",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"admin",
+						"create-schedule"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Create Shift (Admin)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Shift created successfully\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"    pm.response.to.be.json;\r",
+							"\r",
+							"    const json = pm.response.json();\r",
+							"    pm.expect(json).to.have.property(\"id\");\r",
+							"    pm.expect(json).to.have.property(\"schedule_id\");\r",
+							"    pm.expect(json).to.have.property(\"staff_id\");\r",
+							"    pm.expect(json).to.have.property(\"start_time\");\r",
+							"    pm.expect(json).to.have.property(\"end_time\");\r",
+							"\r",
+							"    // check it's for the right schedule & staff\r",
+							"    pm.expect(json.schedule_id).to.eql(Number(pm.environment.get(\"schedule_id\")));\r",
+							"    pm.expect(json.staff_id).to.eql(Number(pm.environment.get(\"staff_id\")));\r",
+							"\r",
+							"    // logical condition: end > start\r",
+							"    const start = new Date(json.start_time);\r",
+							"    const end = new Date(json.end_time);\r",
+							"    pm.expect(end.getTime()).to.be.above(start.getTime());\r",
+							"});\r",
+							"\r",
+							"// store for staff tests\r",
+							"pm.test(\"Store shift_id\", function () {\r",
+							"    const json = pm.response.json();\r",
+							"    pm.environment.set(\"shift_id\", json.id);\r",
+							"    console.log(\"Created shift:\", json.id);\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer {{admin_token}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"scheduleId\": 1,\r\n    \"staffId\": 2,\r\n    \"startTime\": \"2025-11-24T08:00:00\",\r\n    \"endTime\": \"2025-11-24T20:00:00\"\r\n}\r\n"
+				},
+				"url": {
+					"raw": "{{base_url}}/admin/create-shift",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"admin",
+						"create-shift"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Shift Report (Admin)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Shift report request succeeded (200 + JSON)\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"    pm.response.to.be.json;\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Report is an array\", function () {\r",
+							"    const json = pm.response.json();\r",
+							"    pm.expect(json).to.be.an(\"array\");\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Each shift contains required fields\", function () {\r",
+							"    const json = pm.response.json();\r",
+							"\r",
+							"    if (json.length === 0) {\r",
+							"        console.log(\"No shifts returned — skipping field validation.\");\r",
+							"        return;\r",
+							"    }\r",
+							"\r",
+							"    json.forEach(shift => {\r",
+							"        pm.expect(shift).to.have.property(\"id\");\r",
+							"        pm.expect(shift).to.have.property(\"staff_id\");\r",
+							"        pm.expect(shift).to.have.property(\"schedule_id\");\r",
+							"        pm.expect(shift).to.have.property(\"start_time\");\r",
+							"        pm.expect(shift).to.have.property(\"end_time\");\r",
+							"    });\r",
+							"});\r",
+							"\r",
+							"// OPTIONAL: Validate admin token usage\r",
+							"pm.test(\"Report only accessible to admin (uses admin_token)\", function () {\r",
+							"    const tokenUsed = pm.request.headers.get(\"Authorization\");\r",
+							"    pm.expect(tokenUsed).to.include(pm.environment.get(\"admin_token\"));\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer {{admin_token}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"scheduleId\": 1,\r\n    \"staffId\": 1,\r\n    \"startTime\": \"2025-11-24T08:00:00\",\r\n    \"endTime\": \"2025-11-24T20:00:00\"\r\n}\r\n"
+				},
+				"url": {
+					"raw": "{{base_url}}/admin/shift-report",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"admin",
+						"shift-report"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Roster (Staff)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Roster returned successfully (200 + JSON)\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"    pm.response.to.be.json;\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Each shift has required fields\", function () {\r",
+							"    const roster = pm.response.json();\r",
+							"\r",
+							"    roster.forEach(shift => {\r",
+							"        pm.expect(shift).to.have.property(\"id\");\r",
+							"        pm.expect(shift).to.have.property(\"schedule_id\");\r",
+							"        pm.expect(shift).to.have.property(\"staff_id\");\r",
+							"        pm.expect(shift).to.have.property(\"staff_name\");\r",
+							"        pm.expect(shift).to.have.property(\"start_time\");\r",
+							"        pm.expect(shift).to.have.property(\"end_time\");\r",
+							"        pm.expect(shift).to.have.property(\"clock_in\");\r",
+							"        pm.expect(shift).to.have.property(\"clock_out\");\r",
+							"    });\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Authorization header uses staff token\", function () {\r",
+							"    const authHeader = pm.request.headers.get(\"Authorization\");\r",
+							"    const staffToken = pm.environment.get(\"staff_token\");\r",
+							"\r",
+							"    pm.expect(staffToken, \"staff_token must be set\").to.exist;\r",
+							"    pm.expect(authHeader).to.include(staffToken);\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer {{staff_token}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"scheduleId\": 1,\r\n    \"staffId\": 1,\r\n    \"startTime\": \"2025-11-24T08:00:00\",\r\n    \"endTime\": \"2025-11-24T20:00:00\"\r\n}\r\n"
+				},
+				"url": {
+					"raw": "{{base_url}}/staff/roster",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"staff",
+						"roster"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Clock In (Staff)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Clock-in succeeds (200 + JSON)\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"    pm.response.to.be.json;\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Returned shift has correct shape\", function () {\r",
+							"    const json = pm.response.json();\r",
+							"\r",
+							"    pm.expect(json).to.have.property(\"id\");\r",
+							"    pm.expect(json).to.have.property(\"schedule_id\");\r",
+							"    pm.expect(json).to.have.property(\"staff_id\");\r",
+							"    pm.expect(json).to.have.property(\"staff_name\");\r",
+							"    pm.expect(json).to.have.property(\"start_time\");\r",
+							"    pm.expect(json).to.have.property(\"end_time\");\r",
+							"    pm.expect(json).to.have.property(\"clock_in\");\r",
+							"    pm.expect(json).to.have.property(\"clock_out\");\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Clock-in is recorded and belongs to this staff + shift\", function () {\r",
+							"    const json = pm.response.json();\r",
+							"\r",
+							"    const expectedStaffId = Number(pm.environment.get(\"staff_id\"));\r",
+							"    const expectedShiftId = Number(pm.environment.get(\"shift_id\"));\r",
+							"\r",
+							"    pm.expect(expectedStaffId, \"staff_id must be set in environment\").to.be.a(\"number\");\r",
+							"    pm.expect(expectedShiftId, \"shift_id must be set in environment\").to.be.a(\"number\");\r",
+							"\r",
+							"    // Check we updated the right shift\r",
+							"    pm.expect(json.id).to.eql(expectedShiftId);\r",
+							"    pm.expect(json.staff_id).to.eql(expectedStaffId);\r",
+							"\r",
+							"    // Clock-in should now be non-null\r",
+							"    pm.expect(json.clock_in, \"clock_in should be set after clock-in\").to.not.be.null;\r",
+							"\r",
+							"    // First clock-in: clock_out should still be null\r",
+							"    pm.expect(json.clock_out, \"clock_out should still be null immediately after clock-in\").to.be.null;\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Clock-in uses staff token\", function () {\r",
+							"    const authHeader = pm.request.headers.get(\"Authorization\");\r",
+							"    const staffToken = pm.environment.get(\"staff_token\");\r",
+							"\r",
+							"    pm.expect(staffToken, \"staff_token must be set\").to.exist;\r",
+							"    pm.expect(authHeader).to.include(staffToken);\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{staff_token}}",
+						"type": "text"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"shiftId\": {{shift_id}}\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{base_url}}/staff/clock-in",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"staff",
+						"clock-in"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Clock Out (Staff)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Clock-out succeeds (200 + JSON)\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"    pm.response.to.be.json;\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Returned shift has correct shape\", function () {\r",
+							"    const json = pm.response.json();\r",
+							"\r",
+							"    pm.expect(json).to.have.property(\"id\");\r",
+							"    pm.expect(json).to.have.property(\"schedule_id\");\r",
+							"    pm.expect(json).to.have.property(\"staff_id\");\r",
+							"    pm.expect(json).to.have.property(\"staff_name\");\r",
+							"    pm.expect(json).to.have.property(\"start_time\");\r",
+							"    pm.expect(json).to.have.property(\"end_time\");\r",
+							"    pm.expect(json).to.have.property(\"clock_in\");\r",
+							"    pm.expect(json).to.have.property(\"clock_out\");\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Clock-out is recorded and belongs to this staff + shift\", function () {\r",
+							"    const json = pm.response.json();\r",
+							"\r",
+							"    const expectedStaffId = Number(pm.environment.get(\"staff_id\"));\r",
+							"    const expectedShiftId = Number(pm.environment.get(\"shift_id\"));\r",
+							"\r",
+							"    pm.expect(expectedStaffId, \"staff_id must be set in environment\").to.be.a(\"number\");\r",
+							"    pm.expect(expectedShiftId, \"shift_id must be set in environment\").to.be.a(\"number\");\r",
+							"\r",
+							"    // Correct shift updated\r",
+							"    pm.expect(json.id).to.eql(expectedShiftId);\r",
+							"    // Belongs to logged-in staff\r",
+							"    pm.expect(json.staff_id).to.eql(expectedStaffId);\r",
+							"\r",
+							"    // Clock-out should now be set\r",
+							"    pm.expect(json.clock_out, \"clock_out should be set after clock-out\").to.not.be.null;\r",
+							"\r",
+							"    // If clock_in exists, clock_out should be after or equal to it\r",
+							"    if (json.clock_in) {\r",
+							"        const clockIn = new Date(json.clock_in);\r",
+							"        const clockOut = new Date(json.clock_out);\r",
+							"        pm.expect(clockOut.getTime(), \"clock_out must be >= clock_in\").to.be.at.least(clockIn.getTime());\r",
+							"    }\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Clock-out uses staff token\", function () {\r",
+							"    const authHeader = pm.request.headers.get(\"Authorization\");\r",
+							"    const staffToken = pm.environment.get(\"staff_token\");\r",
+							"\r",
+							"    pm.expect(staffToken, \"staff_token must be set\").to.exist;\r",
+							"    pm.expect(authHeader).to.include(staffToken);\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{staff_token}}",
+						"type": "text"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"shiftId\": {{shift_id}}\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{base_url}}/staff/clock-out",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"staff",
+						"clock-out"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "View Shift (Staff)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Staff can fetch their shift\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"    pm.response.to.be.json;\r",
+							"\r",
+							"    const json = pm.response.json();\r",
+							"    pm.expect(json).to.have.property(\"id\");\r",
+							"    pm.expect(json.id).to.eql(Number(pm.environment.get(\"shift_id\")));\r",
+							"\r",
+							"    pm.expect(json.staff_id).to.eql(Number(pm.environment.get(\"staff_id\")));\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{staff_token}}",
+						"type": "text"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{base_url}}/staff/shift/{{shift_id}}",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"staff",
+						"shift",
+						"{{shift_id}}"
+					]
+				}
+			},
+			"response": []
 		}
 	]
 }
