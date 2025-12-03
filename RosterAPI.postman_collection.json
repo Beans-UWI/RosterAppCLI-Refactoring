@@ -4,7 +4,7 @@
 		"name": "Rostering App API",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
 		"_exporter_id": "42003097",
-		"_collection_link": "https://darrenclarke19-9210124.postman.co/workspace/f51b4350-d887-4235-a7d5-f96e6a5dfd22/collection/42003097-537e32d8-09b4-4a12-89d9-545ed42ac5c0?action=share&source=collection_link&creator=42003097"
+		"_collection_link": "https://darrenclarke19-9210124.postman.co/workspace/COMP3613-Project~f51b4350-d887-4235-a7d5-f96e6a5dfd22/collection/42003097-537e32d8-09b4-4a12-89d9-545ed42ac5c0?action=share&source=collection_link&creator=42003097"
 	},
 	"item": [
 		{
@@ -447,6 +447,64 @@
 			"response": []
 		},
 		{
+			"name": "Login (Admin) Copy",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Admin login returns access token\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"    pm.response.to.be.json;\r",
+							"\r",
+							"    const jsonData = pm.response.json();\r",
+							"    pm.expect(jsonData).to.have.property('access_token');\r",
+							"    pm.expect(jsonData['access_token']).to.be.a('string');\r",
+							"\r",
+							"    const token = jsonData['access_token'];\r",
+							"    pm.environment.set('admin_token', token);   // <-- this is the key line\r",
+							"\r",
+							"    // Optional: decode to get ID\r",
+							"    const payload = JSON.parse(atob(token.split('.')[1]));\r",
+							"    const user_id = payload.sub;\r",
+							"    pm.environment.set('admin_id', user_id);\r",
+							"\r",
+							"    console.log(`Logged in ADMIN with ID: ${user_id}`);\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"username\": \"bob\",\r\n    \"password\": \"bobpass\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{base_url}}/api/login",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"login"
+					]
+				}
+			},
+			"response": []
+		},
+		{
 			"name": "Create Schedule (Admin)",
 			"event": [
 				{
@@ -535,7 +593,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n    \"scheduleName\": \"November Week 1\",\r\n    \"strategy\": \"evenDistribution\",\r\n    \"staffList\": [\r\n        { \"id\": 1, \"username\": \"Jane\" },\r\n        { \"id\": 2, \"username\": \"Alice\" }\r\n    ],\r\n    \"shiftLengthHours\": 12,\r\n    \"weekStart\": \"2025-11-24T00:00:00\"\r\n}\r\n",
+					"raw": "{\r\n    \"scheduleName\": \"November Week 1\",\r\n    \"strategy\": \"evenDistribution\",\r\n    \"staffList\": [\r\n        { \"id\": 2, \"username\": \"Jane\" },\r\n        { \"id\": 3, \"username\": \"Alice\" }\r\n    ],\r\n    \"shiftLengthHours\": 12,\r\n    \"weekStart\": \"2025-11-24T00:00:00\"\r\n}\r\n",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -617,11 +675,12 @@
 					"raw": "{\r\n    \"scheduleId\": 1,\r\n    \"staffId\": 2,\r\n    \"startTime\": \"2025-11-24T08:00:00\",\r\n    \"endTime\": \"2025-11-24T20:00:00\"\r\n}\r\n"
 				},
 				"url": {
-					"raw": "{{base_url}}/admin/create-shift",
+					"raw": "{{base_url}}/api/admin/create-shift",
 					"host": [
 						"{{base_url}}"
 					],
 					"path": [
+						"api",
 						"admin",
 						"create-shift"
 					]
@@ -698,13 +757,71 @@
 					"raw": "{\r\n    \"scheduleId\": 1,\r\n    \"staffId\": 1,\r\n    \"startTime\": \"2025-11-24T08:00:00\",\r\n    \"endTime\": \"2025-11-24T20:00:00\"\r\n}\r\n"
 				},
 				"url": {
-					"raw": "{{base_url}}/admin/shift-report",
+					"raw": "{{base_url}}/api/admin/shift-report",
 					"host": [
 						"{{base_url}}"
 					],
 					"path": [
+						"api",
 						"admin",
 						"shift-report"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Login (Staff) Copy",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Staff login returns access token\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"    pm.response.to.be.json;\r",
+							"\r",
+							"    const jsonData = pm.response.json();\r",
+							"    pm.expect(jsonData).to.have.property('access_token');\r",
+							"    pm.expect(jsonData['access_token']).to.be.a('string');\r",
+							"\r",
+							"    const token = jsonData['access_token'];\r",
+							"    pm.environment.set('staff_token', token);   // <-- staff token\r",
+							"\r",
+							"    const payload = JSON.parse(atob(token.split('.')[1]));\r",
+							"    const user_id = payload.sub;\r",
+							"    pm.environment.set('staff_id', user_id);\r",
+							"\r",
+							"    console.log(`Logged in STAFF with ID: ${user_id}`);\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"username\": \"jane\",\r\n    \"password\": \"janepass\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{base_url}}/api/login",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"login"
 					]
 				}
 			},
@@ -771,7 +888,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n    \"scheduleId\": 1,\r\n    \"staffId\": 1,\r\n    \"startTime\": \"2025-11-24T08:00:00\",\r\n    \"endTime\": \"2025-11-24T20:00:00\"\r\n}\r\n"
+					"raw": "{\r\n    \"scheduleId\": 1,\r\n    \"staffId\": 2,\r\n    \"startTime\": \"2025-11-24T08:00:00\",\r\n    \"endTime\": \"2025-11-24T20:00:00\"\r\n}\r\n"
 				},
 				"url": {
 					"raw": "{{base_url}}/staff/roster",
